@@ -5,6 +5,7 @@
 .DS_Store
 /build
 /captures
+/app/src/main/assets
 
 strings.xml
 toilet-map.csv
