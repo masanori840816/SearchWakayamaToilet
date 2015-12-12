@@ -6,7 +6,6 @@ package jp.searchwakayamatoilet;
 import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
@@ -30,6 +29,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import android.support.v4.app.FragmentActivity;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -40,13 +40,11 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResult;
-import com.google.android.gms.location.LocationSettingsStates;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
@@ -71,7 +69,21 @@ public class MainActivity extends FragmentActivity implements
     private final int REQUEST_PERMISSIONS = 1;
     private final int REQUEST_ENABLE_LOCATION = 2;
     private static MainActivity mMainActivity;
-
+    private LocationAccesser mLocationAccesser;
+    public static void networkStatusChanged(){
+        mMainActivity.mLocationAccesser.loadCsvData(mMainActivity);
+    }
+    public static void showToastNoNetworks(){
+        Toast.makeText(mMainActivity, R.string.toast_no_networks, Toast.LENGTH_SHORT).show();
+    }
+    public static void setNewMarker(String newToiletName, double newLatitude, double newLongitude){
+        // UIスレッドで取得したデータを受け取れるようにする.
+        mMainActivity.mStrToiletName = newToiletName;
+        mMainActivity.mDblLatitude = newLatitude;
+        mMainActivity.mDblLongitude = newLongitude;
+        // UIスレッドでマーカー設置.
+        mMainActivity.getCsvHandler.sendEmptyMessage(1);
+    }
     @Override
     public void onConnectionFailed(ConnectionResult result){
 
@@ -106,7 +118,8 @@ public class MainActivity extends FragmentActivity implements
         setContentView(R.layout.activity_main);
 
         mMainActivity = this;
-        NetworkAccesser.initialize(mMainActivity);
+        mLocationAccesser = new LocationAccesser();
+        mLocationAccesser.initialize(this);
         mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
         // Android6.0以降なら権限確認.
@@ -152,73 +165,9 @@ public class MainActivity extends FragmentActivity implements
                                 mMap.setMyLocationEnabled(true);
                                 // 和歌山県庁に移動.
                                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(34.22501, 135.1678), 9));
-                                mMainActivity.loadCsv();
+                                mMainActivity.mLocationAccesser.loadCsvData(mMainActivity);
                             }
                         });
-    }
-    public void loadCsv(){
-
-        if(! this.checkIsNetworkConnected()){
-            return;
-        }
-
-        GoogleApiClient mGoogleApiClient = new GoogleApiClient
-                .Builder(this)
-                .enableAutoManage(this, 34992, this)
-                .addApi(LocationServices.API)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .build();
-        this.checkIsGpsEnable(mGoogleApiClient, mMainActivity);
-
-        HandlerThread handlerThread = new HandlerThread("AddMarker");
-        handlerThread.start();
-
-        Handler handler = new Handler(handlerThread.getLooper());
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                Geocoder geocoder = new Geocoder(mMainActivity, Locale.getDefault());
-                AssetManager asmAsset = mMainActivity.getResources().getAssets();
-                try {
-                    // CSVの読み込み.
-                    InputStream ipsInput = asmAsset.open("toilet-map.csv");
-                    InputStreamReader inputStreamReader = new InputStreamReader(ipsInput);
-                    BufferedReader bufferReader = new BufferedReader(inputStreamReader);
-                    String strLine = "";
-                    String[] strSplited;
-                    Pattern p = Pattern.compile("^[0-9]+");
-                    // 1行ずつ読み込む.
-                    while ((strLine = bufferReader.readLine()) != null) {
-                        // とりあえず数値から始まっている行のみ
-                        if (p.matcher(strLine).find()) {
-                            // とりあえずSplit後に4件以上データがある行のみ.
-                            strSplited = strLine.split(",");
-                            if (strSplited.length >= 4) {
-                                // とりあえず名称と住所のみ.
-                                List addressList = geocoder.getFromLocationName(strSplited[3], 1);
-                                if (addressList.isEmpty()) {
-                                    Log.d("swtSearch", "list is empty");
-                                } else {
-                                    Address address = (Address) addressList.get(0);
-                                    // UIスレッドで取得したデータを受け取れるようにする.
-                                    mMainActivity.mStrToiletName = strSplited[1];
-                                    mMainActivity.mDblLatitude = address.getLatitude();
-                                    mMainActivity.mDblLongitude = address.getLongitude();
-                                    // UIスレッドでマーカー設置.
-                                    getCsvHandler.sendEmptyMessage(1);
-                                }
-                            }
-                        }
-                    }
-                    bufferReader.close();
-                    ipsInput.close();
-
-                } catch (IOException e) {
-                    Log.d("swtSearch", "Exception 発生");
-                }
-            }
-        });
     }
     private static void checkIsGpsEnable(GoogleApiClient googleApiClient, final Activity activity) {
         LocationRequest locationRequest = LocationRequest.create();
@@ -297,8 +246,17 @@ public class MainActivity extends FragmentActivity implements
         if (id == R.id.action_settings) {
             return true;
         }
-
         return super.onOptionsItemSelected(item);
+    }
+    @Override
+    public void onPause(){
+        mLocationAccesser.pause(this);
+        super.onPause();
+    }
+    @Override
+    public void onResume(){
+        mLocationAccesser.resume(this);
+        super.onResume();
     }
     private Handler getCsvHandler = new Handler() {
         public void handleMessage(Message msg) {
@@ -312,14 +270,5 @@ public class MainActivity extends FragmentActivity implements
                     new LatLng(mMainActivity.mDblLatitude, mMainActivity.mDblLongitude)).title(mMainActivity.mStrToiletName));
 
         }
-    }
-    private boolean checkIsNetworkConnected(){
-        NetworkInfo networkInfo = ((ConnectivityManager) mMainActivity.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE))
-                .getActiveNetworkInfo();
-        if(networkInfo != null && networkInfo.isConnected())
-        {
-            return true;
-        }
-        return false;
     }
 }
