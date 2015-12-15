@@ -1,12 +1,34 @@
 package jp.searchwakayamatoilet;
 
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.IntentSender;
 import android.content.res.AssetManager;
 import android.location.Address;
 import android.location.Geocoder;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.support.v4.app.FragmentActivity;
 import android.util.Log;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.model.LatLng;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -19,37 +41,20 @@ import java.util.regex.Pattern;
 /**
  * Created by Masanori on 2015/12/12.
  */
-public class LocationAccesser {
-    private NetworkAccesser mNetworkAccesser;
-    public void initialize(final MainActivity mainActivity){
-        mNetworkAccesser = new NetworkAccesser();
-        mNetworkAccesser.initialize(mainActivity);
-    }
-    public void pause(final MainActivity mainActivity){
-        // ネットワーク状態の監視をストップ.
-        mainActivity.unregisterReceiver(mNetworkAccesser);
-    }
-    public void resume(final MainActivity mainActivit){
-        // ネットワーク状態の監視を再開.
-        mainActivit.registerReceiver(mNetworkAccesser, new IntentFilter(
-                "android.net.conn.CONNECTIVITY_CHANGE"));
+public class LocationAccesser  implements
+        GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener,
+        LocationListener {
+
+    private LocationManager mLocationManager;
+    private GoogleApiClient mGoogleApiClient;
+    private static LocationAccesser sLocationAccesser;
+
+    public void initialize(final LocationManager locationManager){
+        sLocationAccesser = new LocationAccesser();
+        mLocationManager = locationManager;
     }
     public void loadCsvData(final MainActivity mainActivity){
-        if(! mNetworkAccesser.checkIsNetworkConnected()){
-            return;
-        }
-
-        /*
-        GoogleApiClient mGoogleApiClient = new GoogleApiClient
-                .Builder(this)
-                .enableAutoManage(this, 34992, this)
-                .addApi(LocationServices.API)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .build();
-        this.checkIsGpsEnable(mGoogleApiClient, mMainActivity);
-         */
-
         HandlerThread handlerThread = new HandlerThread("AddMarker");
         handlerThread.start();
 
@@ -95,4 +100,89 @@ public class LocationAccesser {
             }
         });
     }
+    public void moveToMyLocation(final FragmentActivity activity){
+        if(mGoogleApiClient == null) {
+            mGoogleApiClient = new GoogleApiClient
+                    .Builder(activity.getApplicationContext())
+                    .enableAutoManage(activity, 34992, this)
+                    .addApi(LocationServices.API)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .build();
+        }
+        LocationRequest locationRequest = LocationRequest.create();
+        locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        locationRequest.setInterval(1000);
+        locationRequest.setFastestInterval(500L);
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                .addLocationRequest(locationRequest);
+        builder.setAlwaysShow(true);
+        PendingResult<LocationSettingsResult> result =
+                LocationServices.SettingsApi.checkLocationSettings(mGoogleApiClient, builder.build());
+        result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
+            @Override
+            public void onResult(LocationSettingsResult result) {
+                final Status status = result.getStatus();
+                switch (status.getStatusCode()) {
+                    case LocationSettingsStatusCodes.SUCCESS:
+                        // GPSがOnなら現在位置を中央に表示.
+                        sLocationAccesser.moveCurrentLocation();
+                        break;
+                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                        try {
+                            // GPSがOffならIntent表示. onActivityResultで結果取得.
+                            status.startResolutionForResult(
+                                    activity, R.string.request_enable_location);
+                        } catch (IntentSender.SendIntentException e) {
+                            // TODO; 例外処理.
+                        }
+                        break;
+                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                        // Locationが無効なら無視.
+                        break;
+                }
+            }
+        });
+    }
+    @Override
+    public void onConnectionFailed(ConnectionResult result){
+
+    }
+    @Override
+    public void onConnectionSuspended(int cause){
+        Log.d("SWT", "Suspended");
+    }
+    @Override
+    public void onConnected(Bundle bundle){
+        Log.d("SWT", "Connected");
+    }
+    @Override
+    public void onProviderEnabled(String strProvider){
+
+    }
+    @Override
+    public void onProviderDisabled(String strProvider){
+
+    }
+    @Override
+    public void onLocationChanged(Location lctCurrentLocation){
+        moveCurrentLocation();
+    }
+    @Override
+    public void onStatusChanged(String strProvider, int status, Bundle extras){
+
+    }
+    public void moveCurrentLocation(){
+        try {
+            // 現在位置を中央に表示.
+// TODO: ぬるぽ.
+            //Location currentLocation = mLocationManager.getLastKnownLocation("gps");
+            //if(currentLocation != null){
+         //       mMap.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude())));
+            //}
+        }catch(SecurityException ex){
+            Log.d("SWT Error", ex.getLocalizedMessage());
+        }
+    }
+
 }

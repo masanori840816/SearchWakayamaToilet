@@ -5,122 +5,63 @@ package jp.searchwakayamatoilet;
  */
 import android.Manifest;
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentSender;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.content.res.AssetManager;
-import android.location.Address;
-import android.location.Geocoder;
-import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
-import android.location.LocationProvider;
 import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Build;
 import android.os.Handler;
-import android.os.HandlerThread;
 import android.os.Message;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import android.support.v4.app.FragmentActivity;
 import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.PendingResult;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.Status;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.LocationSettingsRequest;
-import com.google.android.gms.location.LocationSettingsResult;
-import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.GoogleMap.OnMyLocationButtonClickListener;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.List;
-import java.util.Locale;
-import java.util.regex.Pattern;
-
-public class MainActivity extends FragmentActivity implements
-        GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener,
-        LocationListener {
+public class MainActivity extends FragmentActivity{
     private GoogleMap mMap;
 
     private String mStrToiletName;
     private double mDblLatitude;
     private double mDblLongitude;
-    private LocationManager mLocationManager;
     private final int REQUEST_PERMISSIONS = 1;
-    private final int REQUEST_ENABLE_LOCATION = 2;
-    private static MainActivity mMainActivity;
+    private static MainActivity sMainActivity;
     private LocationAccesser mLocationAccesser;
+    private NetworkAccesser mNetworkAccesser;
+
     public static void networkStatusChanged(){
-        mMainActivity.mLocationAccesser.loadCsvData(mMainActivity);
-    }
-    public static void showToastNoNetworks(){
-        Toast.makeText(mMainActivity, R.string.toast_no_networks, Toast.LENGTH_SHORT).show();
+        sMainActivity.loadToiletDatas();
     }
     public static void setNewMarker(String newToiletName, double newLatitude, double newLongitude){
         // UIスレッドで取得したデータを受け取れるようにする.
-        mMainActivity.mStrToiletName = newToiletName;
-        mMainActivity.mDblLatitude = newLatitude;
-        mMainActivity.mDblLongitude = newLongitude;
+        sMainActivity.mStrToiletName = newToiletName;
+        sMainActivity.mDblLatitude = newLatitude;
+        sMainActivity.mDblLongitude = newLongitude;
         // UIスレッドでマーカー設置.
-        mMainActivity.getCsvHandler.sendEmptyMessage(1);
+        sMainActivity.getCsvHandler.sendEmptyMessage(1);
     }
-    @Override
-    public void onConnectionFailed(ConnectionResult result){
 
-    }
-    @Override
-    public void onConnectionSuspended(int cause){
-        Log.d("SWT", "Suspended");
-    }
-    @Override
-    public void onConnected(Bundle bundle){
-        Log.d("SWT", "Connected");
-    }
-    @Override
-    public void onProviderEnabled(String strProvider){
-
-    }
-    @Override
-    public void onProviderDisabled(String strProvider){
-
-    }
-    @Override
-    public void onLocationChanged(Location lctCurrentLocation){
-        moveCurrentLocation();
-    }
-    @Override
-    public void onStatusChanged(String strProvider, int status, Bundle extras){
-
-    }
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mMainActivity = this;
+        sMainActivity = this;
         mLocationAccesser = new LocationAccesser();
-        mLocationAccesser.initialize(this);
-        mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        mLocationAccesser.initialize((LocationManager) getSystemService(Context.LOCATION_SERVICE));
+
+        mNetworkAccesser = new NetworkAccesser();
 
         // Android6.0以降なら権限確認.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -165,66 +106,28 @@ public class MainActivity extends FragmentActivity implements
                                 mMap.setMyLocationEnabled(true);
                                 // 和歌山県庁に移動.
                                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(34.22501, 135.1678), 9));
-                                mMainActivity.mLocationAccesser.loadCsvData(mMainActivity);
+                                mMap.setOnMyLocationButtonClickListener(new OnMyLocationButtonClickListener() {
+                                    @Override
+                                    public boolean onMyLocationButtonClick() {
+                                        mLocationAccesser.moveToMyLocation(sMainActivity);
+                                        return false;
+                                    }
+                                });
+                                // CSVデータを読み込んでマーカーを設置.
+                                loadToiletDatas();
                             }
                         });
     }
-    private static void checkIsGpsEnable(GoogleApiClient googleApiClient, final Activity activity) {
-        LocationRequest locationRequest = LocationRequest.create();
-        locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
-        locationRequest.setInterval(1000);
-        locationRequest.setFastestInterval(500L);
-        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
-                .addLocationRequest(locationRequest);
-        builder.setAlwaysShow(true);
-        PendingResult<LocationSettingsResult> result =
-                LocationServices.SettingsApi.checkLocationSettings(googleApiClient, builder.build());
-        result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
-            @Override
-            public void onResult(LocationSettingsResult result) {
-                final Status status = result.getStatus();
-                switch (status.getStatusCode()) {
-                    case LocationSettingsStatusCodes.SUCCESS:
-                        // GPSがOnなら現在位置を中央に表示.
-                        mMainActivity.moveCurrentLocation();
-                        break;
-                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                        try {
-                            // GPSがOffならIntent表示. onActivityResultで結果取得.
-                            status.startResolutionForResult(
-                                    activity, mMainActivity.REQUEST_ENABLE_LOCATION);
-                        } catch (IntentSender.SendIntentException e) {
-                            // TODO; 例外処理.
-                        }
-                        break;
-                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-                        // Locationが無効なら無視.
-                        break;
-                }
-            }
-        });
-    }
-    public void moveCurrentLocation(){
-        try {
-            // 現在位置を中央に表示.
 
-            Location currentLocation = mLocationManager.getLastKnownLocation("gps");
-            if(currentLocation != null){
-                mMap.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude())));
-            }
-        }catch(SecurityException ex){
-            Log.d("SWT Error", ex.getLocalizedMessage());
-        }
-    }
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
         super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode){
-            case REQUEST_ENABLE_LOCATION:
+            case R.string.request_enable_location:
                 if(resultCode == RESULT_OK){
                     try {
                         // Locationが有効なら.
-                        mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 500, 500, this);
+                        //mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 500, 500, this);
                     }catch (SecurityException e){
                         // TODO: 例外処理.
                     }
@@ -250,25 +153,41 @@ public class MainActivity extends FragmentActivity implements
     }
     @Override
     public void onPause(){
-        mLocationAccesser.pause(this);
+        // ネットワーク状態の監視をストップ.
+        unregisterReceiver(mNetworkAccesser);
         super.onPause();
     }
     @Override
     public void onResume(){
-        mLocationAccesser.resume(this);
+        // ネットワーク状態の監視を再開.
+        registerReceiver(mNetworkAccesser, new IntentFilter(
+                "android.net.conn.CONNECTIVITY_CHANGE"));
         super.onResume();
+    }
+    @Override
+    public void onStop(){
+        // ネットワーク状態の監視をストップ.
+        unregisterReceiver(mNetworkAccesser);
+        super.onStop();
     }
     private Handler getCsvHandler = new Handler() {
         public void handleMessage(Message msg) {
-            addMarker();
+            if (mMap != null) {
+                // 表示したマップにマーカーを追加する.
+                mMap.addMarker(new MarkerOptions().position(
+                        new LatLng(sMainActivity.mDblLatitude, sMainActivity.mDblLongitude)).title(sMainActivity.mStrToiletName));
+
+            }
         }
     };
-    private void addMarker() {
-        if (mMap != null) {
-            // 表示したマップにマーカーを追加する.
-            mMap.addMarker(new MarkerOptions().position(
-                    new LatLng(mMainActivity.mDblLatitude, mMainActivity.mDblLongitude)).title(mMainActivity.mStrToiletName));
-
+    private void loadToiletDatas(){
+        if(mNetworkAccesser.checkIsNetworkConnected((ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE))){
+            // ネットワークにつながっていればCSVから住所を読み込んでマーカー設置.
+            mLocationAccesser.loadCsvData(this);
+        }
+        else{
+            // ネットワークにつながっていなければToast表示.
+            Toast.makeText(this, R.string.toast_no_networks, Toast.LENGTH_SHORT).show();
         }
     }
 }
