@@ -7,7 +7,6 @@ import android.Manifest;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
@@ -15,22 +14,17 @@ import android.os.Bundle;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import android.support.v4.app.FragmentActivity;
 import android.widget.Toast;
 
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.GoogleMap.OnMyLocationButtonClickListener;
 
 public class MainActivity extends FragmentActivity{
-    private GoogleMap mMap;
+
 
     private String mStrToiletName;
     private double mDblLatitude;
@@ -38,10 +32,9 @@ public class MainActivity extends FragmentActivity{
     private final int REQUEST_PERMISSIONS = 1;
     private static MainActivity sMainActivity;
     private LocationAccesser mLocationAccesser;
-    private NetworkAccesser mNetworkAccesser;
 
     public static void networkStatusChanged(){
-        sMainActivity.loadToiletDatas();
+        sMainActivity.mLocationAccesser.loadCsvData(sMainActivity);
     }
     public static void setNewMarker(String newToiletName, double newLatitude, double newLongitude){
         // UIスレッドで取得したデータを受け取れるようにする.
@@ -51,6 +44,13 @@ public class MainActivity extends FragmentActivity{
         // UIスレッドでマーカー設置.
         sMainActivity.getCsvHandler.sendEmptyMessage(1);
     }
+    public ConnectivityManager getConnectivityManager(){
+        return (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+    }
+    public void showToastNoNetworks(){
+        // ネットワークにつながっていなければToast表示.
+        Toast.makeText(this, R.string.toast_no_networks, Toast.LENGTH_SHORT).show();
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -59,22 +59,20 @@ public class MainActivity extends FragmentActivity{
 
         sMainActivity = this;
         mLocationAccesser = new LocationAccesser();
-        mLocationAccesser.initialize((LocationManager) getSystemService(Context.LOCATION_SERVICE));
-
-        mNetworkAccesser = new NetworkAccesser();
+        mLocationAccesser.initialize(this, (LocationManager) getSystemService(Context.LOCATION_SERVICE));
 
         // Android6.0以降なら権限確認.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             this.requestPermissions();
         } else {
-            this.getNewMap();
+            mLocationAccesser.getGoogleMap(this, (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map));
         }
     }
     @TargetApi(Build.VERSION_CODES.M)
     private void requestPermissions(){
         // 権限が許可されていない場合はリクエスト.
         if (checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            this.getNewMap();
+            mLocationAccesser.getGoogleMap(this, (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map));
         } else {
             requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_PERMISSIONS);
         }
@@ -85,40 +83,12 @@ public class MainActivity extends FragmentActivity{
         if (intRequestCode == REQUEST_PERMISSIONS) {
             if (intGrantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // after being allowed permissions, get GoogleMap and start loading CSV.
-                this.getNewMap();
+                mLocationAccesser.getGoogleMap(this, (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map));
             }
         }else {
             super.onRequestPermissionsResult(intRequestCode, strPermissions, intGrantResults);
         }
     }
-    private void getNewMap(){
-        // get GoogleMap instance.
-        if (mMap != null) {
-            return;
-        }
-        // マップの表示.
-        ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
-                .getMapAsync(
-                        new OnMapReadyCallback() {
-                            @Override
-                            public void onMapReady(GoogleMap gMap) {
-                                mMap = gMap;
-                                mMap.setMyLocationEnabled(true);
-                                // 和歌山県庁に移動.
-                                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(34.22501, 135.1678), 9));
-                                mMap.setOnMyLocationButtonClickListener(new OnMyLocationButtonClickListener() {
-                                    @Override
-                                    public boolean onMyLocationButtonClick() {
-                                        mLocationAccesser.moveToMyLocation(sMainActivity);
-                                        return false;
-                                    }
-                                });
-                                // CSVデータを読み込んでマーカーを設置.
-                                loadToiletDatas();
-                            }
-                        });
-    }
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data){
         super.onActivityResult(requestCode, resultCode, data);
@@ -154,40 +124,18 @@ public class MainActivity extends FragmentActivity{
     @Override
     public void onPause(){
         // ネットワーク状態の監視をストップ.
-        unregisterReceiver(mNetworkAccesser);
+        mLocationAccesser.onPause(this);
         super.onPause();
     }
     @Override
     public void onResume(){
         // ネットワーク状態の監視を再開.
-        registerReceiver(mNetworkAccesser, new IntentFilter(
-                "android.net.conn.CONNECTIVITY_CHANGE"));
+        mLocationAccesser.onResume(this);
         super.onResume();
-    }
-    @Override
-    public void onStop(){
-        // ネットワーク状態の監視をストップ.
-        unregisterReceiver(mNetworkAccesser);
-        super.onStop();
     }
     private Handler getCsvHandler = new Handler() {
         public void handleMessage(Message msg) {
-            if (mMap != null) {
-                // 表示したマップにマーカーを追加する.
-                mMap.addMarker(new MarkerOptions().position(
-                        new LatLng(sMainActivity.mDblLatitude, sMainActivity.mDblLongitude)).title(sMainActivity.mStrToiletName));
-
-            }
+            mLocationAccesser.adMarker(sMainActivity.mStrToiletName, sMainActivity.mDblLatitude, sMainActivity.mDblLongitude);
         }
     };
-    private void loadToiletDatas(){
-        if(mNetworkAccesser.checkIsNetworkConnected((ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE))){
-            // ネットワークにつながっていればCSVから住所を読み込んでマーカー設置.
-            mLocationAccesser.loadCsvData(this);
-        }
-        else{
-            // ネットワークにつながっていなければToast表示.
-            Toast.makeText(this, R.string.toast_no_networks, Toast.LENGTH_SHORT).show();
-        }
-    }
 }

@@ -9,15 +9,22 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.util.Log;
 
 public class NetworkAccesser extends BroadcastReceiver {
-    public boolean checkIsNetworkConnected(ConnectivityManager connectivityManager){
-        NetworkInfo networkInfo = connectivityManager
+    private MainActivity mMainActivity;
+
+    public void initialize(final MainActivity mainActivity){
+        mMainActivity = mainActivity;
+    }
+    public boolean checkIsNetworkConnected(){
+        NetworkInfo networkInfo = mMainActivity.getConnectivityManager()
                 .getActiveNetworkInfo();
         if(networkInfo != null && networkInfo.isConnected())
         {
             return true;
         }
+        mMainActivity.showToastNoNetworks();
         return false;
     }
     @Override
