@@ -5,6 +5,7 @@ import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.content.res.AssetManager;
 import android.location.Address;
+import android.location.Criteria;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
@@ -45,8 +46,7 @@ import java.util.regex.Pattern;
  */
 public class LocationAccesser  implements
         GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener,
-        LocationListener {
+        GoogleApiClient.OnConnectionFailedListener{
 
     private GoogleMap mMap;
     private LocationManager mLocationManager;
@@ -57,6 +57,7 @@ public class LocationAccesser  implements
     public void initialize(final MainActivity mainActivity, final LocationManager locationManager){
         sLocationAccesser = this;
         mLocationManager = locationManager;
+
         mNetworkAccesser = new NetworkAccesser();
         mNetworkAccesser.initialize(mainActivity);
     }
@@ -78,7 +79,7 @@ public class LocationAccesser  implements
                             @Override
                             public boolean onMyLocationButtonClick() {
                                 sLocationAccesser.moveToMyLocation(mainActivity);
-                                return true;
+                                return false;
                             }
                         });
                         sLocationAccesser.loadCsvData(mainActivity);
@@ -159,7 +160,7 @@ public class LocationAccesser  implements
                 switch (status.getStatusCode()) {
                     case LocationSettingsStatusCodes.SUCCESS:
                         // GPSがOnなら無視.
-                        sLocationAccesser.moveCurrentLocation();
+                        //sLocationAccesser.moveCurrentLocation();
                         break;
                     case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
                         try {
@@ -205,29 +206,23 @@ public class LocationAccesser  implements
     public void onConnected(Bundle bundle){
         Log.d("SWT", "Connected");
     }
-    @Override
-    public void onProviderEnabled(String strProvider){
-
-    }
-    @Override
-    public void onProviderDisabled(String strProvider){
-
-    }
-    @Override
-    public void onLocationChanged(Location lctCurrentLocation){
-        moveCurrentLocation();
-    }
-    @Override
-    public void onStatusChanged(String strProvider, int status, Bundle extras){
-
-    }
     public void moveCurrentLocation(){
         try {
             // 現在位置を中央に表示.
-// TODO: ぬるぽ.
-            Location currentLocation = mLocationManager.getLastKnownLocation("gps");
-            if(currentLocation != null){
-                mMap.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude())));
+            Location currentLocation = mMap.getMyLocation();
+
+            if(currentLocation == null){
+                Criteria criteria = new Criteria();
+                criteria.setAccuracy(Criteria.ACCURACY_COARSE);
+                // 位置情報が取得できるプロバイダから現在位置の取得.
+                currentLocation = mLocationManager.getLastKnownLocation(mLocationManager.getBestProvider(criteria, true));
+            }
+            if(currentLocation == null) {
+                // if can't get location, show Toast.
+                MainActivity.showToastFailedGettingLocation();
+            }
+            else{
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), 13));
             }
         }catch(SecurityException ex){
             Log.d("SWT Error", ex.getLocalizedMessage());

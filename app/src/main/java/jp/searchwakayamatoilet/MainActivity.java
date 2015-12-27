@@ -23,8 +23,10 @@ import android.widget.Toast;
 
 import com.google.android.gms.maps.SupportMapFragment;
 
-public class MainActivity extends FragmentActivity{
+import java.util.Timer;
+import java.util.TimerTask;
 
+public class MainActivity extends FragmentActivity{
 
     private String mStrToiletName;
     private double mDblLatitude;
@@ -32,6 +34,9 @@ public class MainActivity extends FragmentActivity{
     private final int REQUEST_PERMISSIONS = 1;
     private static MainActivity sMainActivity;
     private LocationAccesser mLocationAccesser;
+
+    private TimerController mTimeController;
+    private Timer mTmrGettingLocationTimer;
 
     public static void networkStatusChanged(){
         sMainActivity.mLocationAccesser.loadCsvData(sMainActivity);
@@ -42,7 +47,10 @@ public class MainActivity extends FragmentActivity{
         sMainActivity.mDblLatitude = newLatitude;
         sMainActivity.mDblLongitude = newLongitude;
         // UIスレッドでマーカー設置.
-        sMainActivity.getCsvHandler.sendEmptyMessage(1);
+        sMainActivity.executeOnUiThreadHandler.sendEmptyMessage(R.string.handler_get_csv);
+    }
+    public static void showToastFailedGettingLocation(){
+        Toast.makeText(sMainActivity, R.string.toast_failed_getting_location, Toast.LENGTH_SHORT).show();
     }
     public ConnectivityManager getConnectivityManager(){
         return (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -60,6 +68,8 @@ public class MainActivity extends FragmentActivity{
         sMainActivity = this;
         mLocationAccesser = new LocationAccesser();
         mLocationAccesser.initialize(this, (LocationManager) getSystemService(Context.LOCATION_SERVICE));
+
+        mTimeController = new TimerController();
 
         // Android6.0以降なら権限確認.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -95,12 +105,10 @@ public class MainActivity extends FragmentActivity{
         switch (requestCode){
             case R.string.request_enable_location:
                 if(resultCode == RESULT_OK){
-                    try {
-                        // Locationが有効なら.
-                        //mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 500, 500, this);
-                    }catch (SecurityException e){
-                        // TODO: 例外処理.
-                    }
+                    // Locationが有効なら.
+                    //mLocationAccesser.moveCurrentLocation();
+                    mTmrGettingLocationTimer = new Timer();
+                    mTmrGettingLocationTimer.schedule(mTimeController, 1000L);
                 }
                 break;
         }
@@ -133,9 +141,28 @@ public class MainActivity extends FragmentActivity{
         mLocationAccesser.onResume(this);
         super.onResume();
     }
-    private Handler getCsvHandler = new Handler() {
+    private Handler executeOnUiThreadHandler = new Handler() {
         public void handleMessage(Message msg) {
-            mLocationAccesser.adMarker(sMainActivity.mStrToiletName, sMainActivity.mDblLatitude, sMainActivity.mDblLongitude);
+            switch (msg.what){
+                case R.string.handler_get_csv:
+                    mLocationAccesser.adMarker(sMainActivity.mStrToiletName, sMainActivity.mDblLatitude, sMainActivity.mDblLongitude);
+                    break;
+                case R.string.handler_get_location:
+                    // Locationが有効なら現在位置を取得.
+                    mLocationAccesser.moveCurrentLocation();
+                    break;
+            }
+
         }
     };
+    public class TimerController extends TimerTask{
+        @Override
+        public void run() {
+            // get location data.
+            executeOnUiThreadHandler.sendEmptyMessage(R.string.handler_get_location);
+            // cancel timer.
+            //mTmrGettingLocationTimer.cancel();
+            //mTmrGettingLocationTimer.purge();
+        }
+    }
 }
