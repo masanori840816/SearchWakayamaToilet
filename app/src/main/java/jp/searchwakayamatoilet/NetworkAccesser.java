@@ -29,6 +29,6 @@ public class NetworkAccesser extends BroadcastReceiver {
     }
     @Override
     public void onReceive(Context context, Intent intent) {
-        MainActivity.networkStatusChanged();
+        mMainActivity.networkStatusChanged();
     }
 }

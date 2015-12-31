@@ -1,8 +1,9 @@
-package jp.searchwakayamatoilet;
-
 /**
  * Created by Masanori on 2015/12/09.
+ * this class is main controller of this application.
  */
+package jp.searchwakayamatoilet;
+
 import android.Manifest;
 import android.annotation.TargetApi;
 import android.content.Context;
@@ -38,8 +39,8 @@ public class MainActivity extends FragmentActivity{
     private TimerController mTimeController;
     private Timer mTmrGettingLocationTimer;
 
-    public static void networkStatusChanged(){
-        sMainActivity.mLocationAccesser.loadCsvData(sMainActivity);
+    public void networkStatusChanged(){
+        mLocationAccesser.loadCsvData(this);
     }
     public static void setNewMarker(String newToiletName, double newLatitude, double newLongitude){
         // UIスレッドで取得したデータを受け取れるようにする.
@@ -105,8 +106,7 @@ public class MainActivity extends FragmentActivity{
         switch (requestCode){
             case R.string.request_enable_location:
                 if(resultCode == RESULT_OK){
-                    // Locationが有効なら.
-                    //mLocationAccesser.moveCurrentLocation();
+                    // GPSをONにした直後は値が取れない場合があるのでTimerで1秒待つ.
                     mTmrGettingLocationTimer = new Timer();
                     mTmrGettingLocationTimer.schedule(mTimeController, 1000L);
                 }
@@ -140,6 +140,11 @@ public class MainActivity extends FragmentActivity{
         // ネットワーク状態の監視を再開.
         mLocationAccesser.onResume(this);
         super.onResume();
+    }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mLocationAccesser.onDestroy();
     }
     private Handler executeOnUiThreadHandler = new Handler() {
         public void handleMessage(Message msg) {

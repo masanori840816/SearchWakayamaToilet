@@ -1,9 +1,16 @@
+/**
+ * Created by Masanori on 2015/12/12.
+ * this class controls location data and map.
+ */
+
 package jp.searchwakayamatoilet;
 
 import android.app.Activity;
 import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.content.res.AssetManager;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.location.Address;
 import android.location.Criteria;
 import android.location.Geocoder;
@@ -37,13 +44,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
-/**
- * Created by Masanori on 2015/12/12.
- */
 public class LocationAccesser  implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener{
@@ -54,19 +60,28 @@ public class LocationAccesser  implements
     private static LocationAccesser sLocationAccesser;
     private NetworkAccesser mNetworkAccesser;
 
+    private DatabaseAccesser mDbAccesser;
+    private SQLiteDatabase mSqliteDb;
+    private DatabaseAccesser.ToiletInfoModel mToiletInfoModel;
+
     public void initialize(final MainActivity mainActivity, final LocationManager locationManager){
         sLocationAccesser = this;
         mLocationManager = locationManager;
 
         mNetworkAccesser = new NetworkAccesser();
         mNetworkAccesser.initialize(mainActivity);
+
+        mDbAccesser = new DatabaseAccesser(mainActivity);
+        mSqliteDb = mDbAccesser.getWritableDatabase();
+
+        mToiletInfoModel = new DatabaseAccesser(mainActivity).new ToiletInfoModel();
     }
     public void getGoogleMap(final MainActivity mainActivity, final SupportMapFragment mapFragment){
         // get GoogleMap instance.
         if (mMap != null) {
             return;
         }
-        // マップの表示.
+        // show map.
         mapFragment.getMapAsync(
                 new OnMapReadyCallback() {
                     @Override
@@ -87,14 +102,23 @@ public class LocationAccesser  implements
                 });
     }
     public void loadCsvData(final MainActivity mainActivity){
-        if(mNetworkAccesser.checkIsNetworkConnected()) {
-            HandlerThread handlerThread = new HandlerThread("AddMarker");
-            handlerThread.start();
+        HandlerThread handlerThread = new HandlerThread("AddMarker");
+        handlerThread.start();
 
-            Handler handler = new Handler(handlerThread.getLooper());
-            handler.post(new Runnable() {
-                @Override
-                public void run() {
+        Handler handler = new Handler(handlerThread.getLooper());
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+
+                ArrayList<DatabaseAccesser.ToiletInfoModel> aryToiletInfo = mDbAccesser.search(mSqliteDb);
+
+                if (aryToiletInfo != null
+                        && aryToiletInfo.size() > 0) {
+                    for (DatabaseAccesser.ToiletInfoModel toiletInfo : aryToiletInfo) {
+                        Log.d("SWT", "ID:" + toiletInfo.id);
+                        Log.d("SWT", "Name:" + toiletInfo.toiletName);
+                    }
+                } else if (mNetworkAccesser.checkIsNetworkConnected()) {
                     Geocoder geocoder = new Geocoder(mainActivity, Locale.getDefault());
                     AssetManager asmAsset = mainActivity.getResources().getAssets();
                     try {
@@ -105,6 +129,7 @@ public class LocationAccesser  implements
                         String strLine = "";
                         String[] strSplited;
                         Pattern p = Pattern.compile("^[0-9]+");
+
                         // 1行ずつ読み込む.
                         while ((strLine = bufferReader.readLine()) != null) {
                             // とりあえず数値から始まっている行のみ
@@ -120,37 +145,65 @@ public class LocationAccesser  implements
                                         Address address = (Address) addressList.get(0);
                                         // UIスレッドで取得したデータを受け取れるようにする.
                                         MainActivity.setNewMarker(strSplited[1], address.getLatitude(), address.getLongitude());
+
+                                        mSqliteDb.beginTransaction();
+                                        // Insert.
+                                        mToiletInfoModel.toiletName = strSplited[1];
+                                        // 都道府県はひとまず和歌山固定.
+                                        mToiletInfoModel.district = "和歌山";
+                                        mToiletInfoModel.municipality = strSplited[2];
+                                        mToiletInfoModel.address = strSplited[3];
+                                        mToiletInfoModel.latitude = address.getLatitude();
+                                        mToiletInfoModel.longitude = address.getLongitude();
+                                        mToiletInfoModel.availableTime = strSplited[4];
+                                        String strNearbySightseeing = (strSplited.length > 35) ? strSplited[35] : "";
+                                        mToiletInfoModel.nearbySightseeing = strNearbySightseeing;
+
+                                        mDbAccesser.insertInfo(mSqliteDb, mToiletInfoModel);
+
+                                        mSqliteDb.setTransactionSuccessful();
+
+                                        mSqliteDb.endTransaction();
                                     }
                                 }
                             }
                         }
+
                         bufferReader.close();
                         ipsInput.close();
 
                     } catch (IOException e) {
-                        Log.d("swtSearch", "Exception:" + e.getLocalizedMessage());
+                        // TODO: error処理.
+                        Log.d("SWT", "Exception:" + e.getLocalizedMessage());
+                    } catch (SQLiteException e) {
+                        // TODO: error処理.
+                        Log.d("SWT", "Exception:" + e.getLocalizedMessage());
+                    } finally {
+ //                       mSqliteDb.endTransaction();
                     }
                 }
-            });
-        }
+            }
+        });
     }
     public void moveToMyLocation(final FragmentActivity activity){
+        LocationRequest locationRequest = LocationRequest.create();
+        locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        locationRequest.setInterval(3000L);
+        locationRequest.setFastestInterval(500L);
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                .addLocationRequest(locationRequest);
+        builder.setAlwaysShow(true);
+
         if(mGoogleApiClient == null) {
             mGoogleApiClient = new GoogleApiClient
                     .Builder(activity.getApplicationContext())
-                    .enableAutoManage(activity, 34992, this)
+                    .enableAutoManage(activity, this)
                     .addApi(LocationServices.API)
                     .addConnectionCallbacks(this)
                     .addOnConnectionFailedListener(this)
                     .build();
         }
-        LocationRequest locationRequest = LocationRequest.create();
-        locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
-        locationRequest.setInterval(1000);
-        locationRequest.setFastestInterval(500L);
-        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
-                .addLocationRequest(locationRequest);
-        builder.setAlwaysShow(true);
+
         PendingResult<LocationSettingsResult> result =
                 LocationServices.SettingsApi.checkLocationSettings(mGoogleApiClient, builder.build());
         result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
@@ -160,7 +213,6 @@ public class LocationAccesser  implements
                 switch (status.getStatusCode()) {
                     case LocationSettingsStatusCodes.SUCCESS:
                         // GPSがOnなら無視.
-                        //sLocationAccesser.moveCurrentLocation();
                         break;
                     case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
                         try {
@@ -194,9 +246,12 @@ public class LocationAccesser  implements
         activeActivity.registerReceiver(mNetworkAccesser, new IntentFilter(
                 "android.net.conn.CONNECTIVITY_CHANGE"));
     }
+    public void onDestroy(){
+        //mRealm.close();
+    }
     @Override
     public void onConnectionFailed(ConnectionResult result){
-
+        Log.d("SWT", "Failed");
     }
     @Override
     public void onConnectionSuspended(int cause){
@@ -228,5 +283,4 @@ public class LocationAccesser  implements
             Log.d("SWT Error", ex.getLocalizedMessage());
         }
     }
-
 }
