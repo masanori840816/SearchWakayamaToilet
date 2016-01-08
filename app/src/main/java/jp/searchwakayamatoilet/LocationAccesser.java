@@ -102,6 +102,8 @@ public class LocationAccesser  implements
                 });
     }
     public void loadCsvData(final MainActivity mainActivity){
+        mMap.clear();
+
         HandlerThread handlerThread = new HandlerThread("AddMarker");
         handlerThread.start();
 
@@ -109,7 +111,6 @@ public class LocationAccesser  implements
         handler.post(new Runnable() {
             @Override
             public void run() {
-
                 ArrayList<DatabaseAccesser.ToiletInfoModel> aryToiletInfo = mDbAccesser.search(mSqliteDb);
 
                 if (aryToiletInfo != null
@@ -117,6 +118,11 @@ public class LocationAccesser  implements
                     for (DatabaseAccesser.ToiletInfoModel toiletInfo : aryToiletInfo) {
                         Log.d("SWT", "ID:" + toiletInfo.id);
                         Log.d("SWT", "Name:" + toiletInfo.toiletName);
+                        Log.d("SWT", "Latitude:" + toiletInfo.latitude);
+                        Log.d("SWT", "Longitude:" + toiletInfo.longitude);
+
+                        // UIスレッドで取得したデータを受け取れるようにする.
+                        MainActivity.setNewMarker(toiletInfo.toiletName, toiletInfo.latitude, toiletInfo.longitude);
                     }
                 } else if (mNetworkAccesser.checkIsNetworkConnected()) {
                     Geocoder geocoder = new Geocoder(mainActivity, Locale.getDefault());
@@ -139,9 +145,7 @@ public class LocationAccesser  implements
                                 if (strSplited.length >= 4) {
                                     // とりあえず名称と住所のみ.
                                     List addressList = geocoder.getFromLocationName(strSplited[3], 1);
-                                    if (addressList.isEmpty()) {
-                                        Log.d("swtSearch", "list is empty");
-                                    } else {
+                                    if (!addressList.isEmpty()) {
                                         Address address = (Address) addressList.get(0);
                                         // UIスレッドで取得したデータを受け取れるようにする.
                                         MainActivity.setNewMarker(strSplited[1], address.getLatitude(), address.getLongitude());
@@ -178,8 +182,6 @@ public class LocationAccesser  implements
                     } catch (SQLiteException e) {
                         // TODO: error処理.
                         Log.d("SWT", "Exception:" + e.getLocalizedMessage());
-                    } finally {
- //                       mSqliteDb.endTransaction();
                     }
                 }
             }
@@ -282,5 +284,8 @@ public class LocationAccesser  implements
         }catch(SecurityException ex){
             Log.d("SWT Error", ex.getLocalizedMessage());
         }
+    }
+    private void removeAllMarkers(){
+
     }
 }

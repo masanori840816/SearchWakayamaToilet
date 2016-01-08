@@ -15,6 +15,10 @@ import android.os.Bundle;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.view.MenuItemCompat;
+import android.support.v7.widget.SearchView;
+import android.support.v7.widget.Toolbar;
+import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -38,6 +42,8 @@ public class MainActivity extends FragmentActivity{
 
     private TimerController mTimeController;
     private Timer mTmrGettingLocationTimer;
+
+    private SearchView mSearchView;
 
     public void networkStatusChanged(){
         mLocationAccesser.loadCsvData(this);
@@ -71,6 +77,29 @@ public class MainActivity extends FragmentActivity{
         mLocationAccesser.initialize(this, (LocationManager) getSystemService(Context.LOCATION_SERVICE));
 
         mTimeController = new TimerController();
+
+        Toolbar _toolbar = (Toolbar) findViewById(R.id.toolbar);
+        _toolbar.inflateMenu(R.menu.menu_main);
+
+        mSearchView = (SearchView) MenuItemCompat.getActionView(_toolbar.getMenu().findItem(R.id.searchview));
+        // hide Submit button.
+        mSearchView.setSubmitButtonEnabled(false);
+
+        mSearchView.setQueryHint(getString(R.string.searchview_queryhint));
+
+        mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String searchWord) {
+                // search toilet name or address by input words by Submit button or EnterKey.
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                // 入力される度に呼び出される
+                return false;
+            }
+        });
 
         // Android6.0以降なら権限確認.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -121,12 +150,12 @@ public class MainActivity extends FragmentActivity{
     }
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
+        //int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
+        //if (id == R.id.action_settings) {
+         //   return true;
+        //}
         return super.onOptionsItemSelected(item);
     }
     @Override
@@ -165,9 +194,6 @@ public class MainActivity extends FragmentActivity{
         public void run() {
             // get location data.
             executeOnUiThreadHandler.sendEmptyMessage(R.string.handler_get_location);
-            // cancel timer.
-            //mTmrGettingLocationTimer.cancel();
-            //mTmrGettingLocationTimer.purge();
         }
     }
 }

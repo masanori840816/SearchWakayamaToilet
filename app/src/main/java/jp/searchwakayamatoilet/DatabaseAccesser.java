@@ -68,7 +68,7 @@ public class DatabaseAccesser extends SQLiteOpenHelper{
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("CREATE TABLE IF NOT EXISTS toiletinfo("
-                        + "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                        + "id INTEGER PRIMARY KEY, "
                         + "toiletname TEXT NOT NULL, "
                         + "district TEXT, "
                         + "municipality TEXT, "
