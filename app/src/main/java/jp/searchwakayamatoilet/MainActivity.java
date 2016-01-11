@@ -18,7 +18,6 @@ import android.os.Message;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
-import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -33,9 +32,7 @@ import java.util.TimerTask;
 
 public class MainActivity extends FragmentActivity{
 
-    private String mStrToiletName;
-    private double mDblLatitude;
-    private double mDblLongitude;
+
     private final int REQUEST_PERMISSIONS = 1;
     private static MainActivity sMainActivity;
     private LocationAccesser mLocationAccesser;
@@ -46,15 +43,8 @@ public class MainActivity extends FragmentActivity{
     private SearchView mSearchView;
 
     public void networkStatusChanged(){
-        mLocationAccesser.loadCsvData(this);
-    }
-    public static void setNewMarker(String newToiletName, double newLatitude, double newLongitude){
-        // UIスレッドで取得したデータを受け取れるようにする.
-        sMainActivity.mStrToiletName = newToiletName;
-        sMainActivity.mDblLatitude = newLatitude;
-        sMainActivity.mDblLongitude = newLongitude;
-        // UIスレッドでマーカー設置.
-        sMainActivity.executeOnUiThreadHandler.sendEmptyMessage(R.string.handler_get_csv);
+        // TODO: アプリを使用中＋ネットワーク接続時のみ実行するよう修正.
+        //mLocationAccesser.loadCsvData(this);
     }
     public static void showToastFailedGettingLocation(){
         Toast.makeText(sMainActivity, R.string.toast_failed_getting_location, Toast.LENGTH_SHORT).show();
@@ -91,6 +81,7 @@ public class MainActivity extends FragmentActivity{
             @Override
             public boolean onQueryTextSubmit(String searchWord) {
                 // search toilet name or address by input words by Submit button or EnterKey.
+                mLocationAccesser.setMarkersByFreeWord(searchWord);
                 return false;
             }
 
@@ -170,17 +161,9 @@ public class MainActivity extends FragmentActivity{
         mLocationAccesser.onResume(this);
         super.onResume();
     }
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        mLocationAccesser.onDestroy();
-    }
     private Handler executeOnUiThreadHandler = new Handler() {
         public void handleMessage(Message msg) {
             switch (msg.what){
-                case R.string.handler_get_csv:
-                    mLocationAccesser.adMarker(sMainActivity.mStrToiletName, sMainActivity.mDblLatitude, sMainActivity.mDblLongitude);
-                    break;
                 case R.string.handler_get_location:
                     // Locationが有効なら現在位置を取得.
                     mLocationAccesser.moveCurrentLocation();

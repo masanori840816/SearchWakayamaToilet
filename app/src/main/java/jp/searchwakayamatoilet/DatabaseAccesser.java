@@ -9,6 +9,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import java.util.ArrayList;
 
@@ -24,6 +25,9 @@ public class DatabaseAccesser extends SQLiteOpenHelper{
         public String availableTime;
         public String nearbySightseeing;
     }
+    private String mStrSearchCriteria;
+    private String[] mStrSearchParameters;
+
     public DatabaseAccesser(Context context){
         super(context, "toiletinfo.db", null, 1);
     }
@@ -42,26 +46,43 @@ public class DatabaseAccesser extends SQLiteOpenHelper{
         contentValues.put("lastupdatedate", java.lang.System.currentTimeMillis());
         db.insert("toiletinfo", null, contentValues);
     }
+    public void setSearchCriteriaFromFreeWord(String strWord){
+        mStrSearchCriteria = "toiletname LIKE ? OR address LIKE ?";
+
+        StringBuilder _stb = new StringBuilder("%");
+        _stb.append(strWord);
+        _stb.append("%");
+        String strEditedWord = _stb.toString();
+
+        mStrSearchParameters = new String[]{
+                strEditedWord
+                , strEditedWord
+        };
+    }
     public ArrayList<ToiletInfoModel> search(SQLiteDatabase db){
         ArrayList<ToiletInfoModel> aryToiletInfo = new ArrayList<ToiletInfoModel>();
-        Cursor cursor = db.query("toiletinfo", null, null, null, null, null, "id desc", null);
-        int count = cursor.getCount();
-        cursor.moveToFirst();
 
-        for(int i = 0; i < count; i++){
+        Cursor _cursor = db.query("toiletinfo", null, mStrSearchCriteria, mStrSearchParameters, null, null, "id ASC", null);
+
+        _cursor.moveToFirst();
+
+        for(int i = 0; i < _cursor.getCount(); i++){
             ToiletInfoModel toiletInfoModel = new ToiletInfoModel();
-            toiletInfoModel.toiletName = cursor.getString(cursor.getColumnIndex("toiletname"));
-            toiletInfoModel.district = cursor.getString(cursor.getColumnIndex("district"));
-            toiletInfoModel.municipality = cursor.getString(cursor.getColumnIndex("municipality"));
-            toiletInfoModel.address = cursor.getString(cursor.getColumnIndex("address"));
-            toiletInfoModel.latitude = cursor.getDouble(cursor.getColumnIndex("latitude"));
-            toiletInfoModel.longitude = cursor.getDouble(cursor.getColumnIndex("longitude"));
-            toiletInfoModel.availableTime = cursor.getString(cursor.getColumnIndex("availabletime"));
-            toiletInfoModel.nearbySightseeing = cursor.getString(cursor.getColumnIndex("nearbysightseeing"));
+            toiletInfoModel.toiletName = _cursor.getString(_cursor.getColumnIndex("toiletname"));
+            toiletInfoModel.district = _cursor.getString(_cursor.getColumnIndex("district"));
+            toiletInfoModel.municipality = _cursor.getString(_cursor.getColumnIndex("municipality"));
+            toiletInfoModel.address = _cursor.getString(_cursor.getColumnIndex("address"));
+            toiletInfoModel.latitude = _cursor.getDouble(_cursor.getColumnIndex("latitude"));
+            toiletInfoModel.longitude = _cursor.getDouble(_cursor.getColumnIndex("longitude"));
+            toiletInfoModel.availableTime = _cursor.getString(_cursor.getColumnIndex("availabletime"));
+            toiletInfoModel.nearbySightseeing = _cursor.getString(_cursor.getColumnIndex("nearbysightseeing"));
 
             aryToiletInfo.add(toiletInfoModel);
-            cursor.moveToNext();
+            _cursor.moveToNext();
         }
+        // 検索後はNullに戻す.
+        mStrSearchCriteria = null;
+        mStrSearchParameters = null;
 
         return aryToiletInfo;
     }

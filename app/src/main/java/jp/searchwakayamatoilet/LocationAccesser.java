@@ -20,6 +20,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.Message;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 
@@ -116,13 +117,12 @@ public class LocationAccesser  implements
                 if (aryToiletInfo != null
                         && aryToiletInfo.size() > 0) {
                     for (DatabaseAccesser.ToiletInfoModel toiletInfo : aryToiletInfo) {
-                        Log.d("SWT", "ID:" + toiletInfo.id);
-                        Log.d("SWT", "Name:" + toiletInfo.toiletName);
-                        Log.d("SWT", "Latitude:" + toiletInfo.latitude);
-                        Log.d("SWT", "Longitude:" + toiletInfo.longitude);
 
-                        // UIスレッドで取得したデータを受け取れるようにする.
-                        MainActivity.setNewMarker(toiletInfo.toiletName, toiletInfo.latitude, toiletInfo.longitude);
+                        // Add marker on UI Thread.
+                        Message msgToiletInfo = new Message();
+                        msgToiletInfo.what = R.string.handler_get_csv;
+                        msgToiletInfo.obj = toiletInfo;
+                        executeOnUiThreadHandler.sendMessage(msgToiletInfo);
                     }
                 } else if (mNetworkAccesser.checkIsNetworkConnected()) {
                     Geocoder geocoder = new Geocoder(mainActivity, Locale.getDefault());
@@ -143,15 +143,12 @@ public class LocationAccesser  implements
                                 // とりあえずSplit後に4件以上データがある行のみ.
                                 strSplited = strLine.split(",");
                                 if (strSplited.length >= 4) {
-                                    // とりあえず名称と住所のみ.
                                     List addressList = geocoder.getFromLocationName(strSplited[3], 1);
                                     if (!addressList.isEmpty()) {
                                         Address address = (Address) addressList.get(0);
-                                        // UIスレッドで取得したデータを受け取れるようにする.
-                                        MainActivity.setNewMarker(strSplited[1], address.getLatitude(), address.getLongitude());
 
                                         mSqliteDb.beginTransaction();
-                                        // Insert.
+
                                         mToiletInfoModel.toiletName = strSplited[1];
                                         // 都道府県はひとまず和歌山固定.
                                         mToiletInfoModel.district = "和歌山";
@@ -163,6 +160,13 @@ public class LocationAccesser  implements
                                         String strNearbySightseeing = (strSplited.length > 35) ? strSplited[35] : "";
                                         mToiletInfoModel.nearbySightseeing = strNearbySightseeing;
 
+                                        // Add marker on UI Thread.
+                                        Message msgToiletInfo = new Message();
+                                        msgToiletInfo.what = R.string.handler_get_csv;
+                                        msgToiletInfo.obj = mToiletInfoModel;
+                                        executeOnUiThreadHandler.sendMessage(msgToiletInfo);
+
+                                        // Insert got data.
                                         mDbAccesser.insertInfo(mSqliteDb, mToiletInfoModel);
 
                                         mSqliteDb.setTransactionSuccessful();
@@ -232,8 +236,13 @@ public class LocationAccesser  implements
             }
         });
     }
-    public void adMarker(String strToiletName, double dblLatitude, double dblLongitude){
+    public void addMarker(String strToiletName, double dblLatitude, double dblLongitude){
         if (mMap != null) {
+
+            Log.d("SWT", "AddMarker " + strToiletName);
+            Log.d("SWT", "AddMarker Latitude " + dblLatitude);
+            Log.d("SWT", "AddMarker Longitude " + dblLongitude);
+
             // 表示したマップにマーカーを追加する.
             mMap.addMarker(new MarkerOptions().position(
                     new LatLng(dblLatitude, dblLongitude)).title(strToiletName));
@@ -247,9 +256,6 @@ public class LocationAccesser  implements
         // ネットワーク状態の監視を再開.
         activeActivity.registerReceiver(mNetworkAccesser, new IntentFilter(
                 "android.net.conn.CONNECTIVITY_CHANGE"));
-    }
-    public void onDestroy(){
-        //mRealm.close();
     }
     @Override
     public void onConnectionFailed(ConnectionResult result){
@@ -285,7 +291,42 @@ public class LocationAccesser  implements
             Log.d("SWT Error", ex.getLocalizedMessage());
         }
     }
-    private void removeAllMarkers(){
+    public void setMarkersByFreeWord(final String strWord){
+        mMap.clear();
 
+        HandlerThread handlerThread = new HandlerThread("AddMarker");
+        handlerThread.start();
+
+        Handler handler = new Handler(handlerThread.getLooper());
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                mDbAccesser.setSearchCriteriaFromFreeWord(strWord);
+                ArrayList<DatabaseAccesser.ToiletInfoModel> aryToiletInfo = mDbAccesser.search(mSqliteDb);
+
+                if (aryToiletInfo != null) {
+                    for (DatabaseAccesser.ToiletInfoModel toiletInfo : aryToiletInfo) {
+                        // Add marker on UI Thread.
+                        Message msgToiletInfo = new Message();
+                        msgToiletInfo.what = R.string.handler_get_csv;
+                        msgToiletInfo.obj = toiletInfo;
+                        executeOnUiThreadHandler.sendMessage(msgToiletInfo);
+                    }
+                }
+            }
+        });
     }
+    private Handler executeOnUiThreadHandler = new Handler() {
+        public void handleMessage(Message msg) {
+            switch (msg.what){
+                case R.string.handler_get_csv:
+
+                    if(msg.obj != null){
+                        DatabaseAccesser.ToiletInfoModel toiletInfo = (DatabaseAccesser.ToiletInfoModel)msg.obj;
+                        addMarker(toiletInfo.toiletName, toiletInfo.latitude, toiletInfo.longitude);
+                    }
+                    break;
+            }
+        }
+    };
 }
