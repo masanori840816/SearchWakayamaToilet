@@ -2,6 +2,7 @@ package jp.searchwakayamatoilet;
 
 /**
  * Created by masanori on 2015/12/31.
+ * this class manages DB.
  */
 
 import android.content.Context;
@@ -47,17 +48,28 @@ public class DatabaseAccesser extends SQLiteOpenHelper{
         db.insert("toiletinfo", null, contentValues);
     }
     public void setSearchCriteriaFromFreeWord(String strWord){
-        mStrSearchCriteria = "toiletname LIKE ? OR address LIKE ?";
+        // とりあえずAnd検索のみ.
+        String[] splittedWords = strWord.split("　|\\s");
+        StringBuilder _newSearchCriteria = new StringBuilder();
 
-        StringBuilder _stb = new StringBuilder("%");
-        _stb.append(strWord);
-        _stb.append("%");
-        String strEditedWord = _stb.toString();
+        // toiletname, addressが対象.
+        mStrSearchParameters = new String[splittedWords.length * 2];
 
-        mStrSearchParameters = new String[]{
-                strEditedWord
-                , strEditedWord
-        };
+        for(int i = 0, j = 0; i < splittedWords.length; i++){
+            if(i > 0){
+                _newSearchCriteria.append(" AND ");
+            }
+            _newSearchCriteria.append("(toiletname LIKE ? OR address LIKE ?)");
+
+            StringBuilder _newParameter = new StringBuilder("%");
+            _newParameter.append(splittedWords[i]);
+            _newParameter.append("%");
+            mStrSearchParameters[j] = _newParameter.toString();
+            mStrSearchParameters[j + 1] = _newParameter.toString();
+            j += 2;
+        }
+
+        mStrSearchCriteria = _newSearchCriteria.toString();
     }
     public ArrayList<ToiletInfoModel> search(SQLiteDatabase db){
         ArrayList<ToiletInfoModel> aryToiletInfo = new ArrayList<ToiletInfoModel>();
