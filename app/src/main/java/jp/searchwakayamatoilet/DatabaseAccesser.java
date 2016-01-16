@@ -33,7 +33,8 @@ public class DatabaseAccesser extends SQLiteOpenHelper{
         super(context, "toiletinfo.db", null, 1);
     }
     public void insertInfo(SQLiteDatabase db, ToiletInfoModel toiletInfo){
-        // beginTransaction, endTransactionは呼び出し元で実行.
+
+        // Transactionの開始・終了は呼び出し元で実行.
         ContentValues contentValues = new ContentValues();
 
         contentValues.put("toiletname", toiletInfo.toiletName);

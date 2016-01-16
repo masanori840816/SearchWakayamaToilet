@@ -15,7 +15,6 @@ import android.location.Address;
 import android.location.Criteria;
 import android.location.Geocoder;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -24,6 +23,7 @@ import android.os.Message;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 
+import com.annimon.stream.Stream;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
@@ -46,7 +46,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
@@ -65,6 +64,8 @@ public class LocationAccesser  implements
     private SQLiteDatabase mSqliteDb;
     private DatabaseAccesser.ToiletInfoModel mToiletInfoModel;
 
+    private boolean mIsDataLoaded;
+
     public void initialize(final MainActivity mainActivity, final LocationManager locationManager){
         sLocationAccesser = this;
         mLocationManager = locationManager;
@@ -75,7 +76,9 @@ public class LocationAccesser  implements
         mDbAccesser = new DatabaseAccesser(mainActivity);
         mSqliteDb = mDbAccesser.getWritableDatabase();
 
-        mToiletInfoModel = new DatabaseAccesser(mainActivity).new ToiletInfoModel();
+        mToiletInfoModel = mDbAccesser.new ToiletInfoModel();
+
+        mIsDataLoaded = false;
     }
     public void getGoogleMap(final MainActivity mainActivity, final SupportMapFragment mapFragment){
         // get GoogleMap instance.
@@ -112,9 +115,10 @@ public class LocationAccesser  implements
         handler.post(new Runnable() {
             @Override
             public void run() {
-                ArrayList<DatabaseAccesser.ToiletInfoModel> aryToiletInfo = mDbAccesser.search(mSqliteDb);
+                final ArrayList<DatabaseAccesser.ToiletInfoModel> aryToiletInfo = mDbAccesser.search(mSqliteDb);
 
-                if (aryToiletInfo != null
+                if (mIsDataLoaded
+                        && aryToiletInfo != null
                         && aryToiletInfo.size() > 0) {
                     for (DatabaseAccesser.ToiletInfoModel toiletInfo : aryToiletInfo) {
 
@@ -136,6 +140,9 @@ public class LocationAccesser  implements
                         String[] strSplited;
                         Pattern p = Pattern.compile("^[0-9]+");
 
+                        // Transactionの開始.
+                    //    mSqliteDb.beginTransaction();
+
                         // 1行ずつ読み込む.
                         while ((strLine = bufferReader.readLine()) != null) {
                             // とりあえず数値から始まっている行のみ
@@ -143,11 +150,13 @@ public class LocationAccesser  implements
                                 // とりあえずSplit後に4件以上データがある行のみ.
                                 strSplited = strLine.split(",");
                                 if (strSplited.length >= 4) {
+
                                     List addressList = geocoder.getFromLocationName(strSplited[3], 1);
                                     if (!addressList.isEmpty()) {
-                                        Address address = (Address) addressList.get(0);
 
                                         mSqliteDb.beginTransaction();
+
+                                        Address address = (Address) addressList.get(0);
 
                                         mToiletInfoModel.toiletName = strSplited[1];
                                         // 都道府県はひとまず和歌山固定.
@@ -166,19 +175,30 @@ public class LocationAccesser  implements
                                         msgToiletInfo.obj = mToiletInfoModel;
                                         executeOnUiThreadHandler.sendMessage(msgToiletInfo);
 
-                                        // Insert got data.
-                                        mDbAccesser.insertInfo(mSqliteDb, mToiletInfoModel);
+                                        final String toiletName = strSplited[1];
+                                        final String toiletAddress = strSplited[3];
+                                        long lngCount = Stream.of(aryToiletInfo)
+                                                .filter(toiletInfo -> (toiletInfo.toiletName.equals(toiletName)
+                                                        && toiletInfo.address.equals(toiletAddress))).count();
+
+                                        if(lngCount <= 0){
+                                            // if there is no same data, insert as new one.
+                                            mDbAccesser.insertInfo(mSqliteDb, mToiletInfoModel);
+                                        }
 
                                         mSqliteDb.setTransactionSuccessful();
-
                                         mSqliteDb.endTransaction();
                                     }
                                 }
                             }
                         }
+                        // CommitしてTransactionを終了.
+             //           mSqliteDb.setTransactionSuccessful();
+             //           mSqliteDb.endTransaction();
 
                         bufferReader.close();
                         ipsInput.close();
+                      //  mIsDataLoaded = true;
 
                     } catch (IOException e) {
                         // TODO: error処理.
@@ -238,11 +258,6 @@ public class LocationAccesser  implements
     }
     public void addMarker(String strToiletName, double dblLatitude, double dblLongitude){
         if (mMap != null) {
-
-            Log.d("SWT", "AddMarker " + strToiletName);
-            Log.d("SWT", "AddMarker Latitude " + dblLatitude);
-            Log.d("SWT", "AddMarker Longitude " + dblLongitude);
-
             // 表示したマップにマーカーを追加する.
             mMap.addMarker(new MarkerOptions().position(
                     new LatLng(dblLatitude, dblLongitude)).title(strToiletName));

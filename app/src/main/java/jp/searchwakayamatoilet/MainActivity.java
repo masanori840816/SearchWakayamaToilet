@@ -19,8 +19,6 @@ import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 
 import android.support.v4.app.FragmentActivity;
 import android.widget.Toast;
@@ -39,8 +37,6 @@ public class MainActivity extends FragmentActivity{
 
     private TimerController mTimeController;
     private Timer mTmrGettingLocationTimer;
-
-    private SearchView mSearchView;
 
     public void networkStatusChanged(){
         // TODO: アプリを使用中＋ネットワーク接続時のみ実行するよう修正.
@@ -71,13 +67,13 @@ public class MainActivity extends FragmentActivity{
         Toolbar _toolbar = (Toolbar) findViewById(R.id.toolbar);
         _toolbar.inflateMenu(R.menu.menu_main);
 
-        mSearchView = (SearchView) MenuItemCompat.getActionView(_toolbar.getMenu().findItem(R.id.searchview));
+        SearchView _searchView = (SearchView) MenuItemCompat.getActionView(_toolbar.getMenu().findItem(R.id.searchview));
         // hide Submit button.
-        mSearchView.setSubmitButtonEnabled(false);
+        _searchView.setSubmitButtonEnabled(false);
 
-        mSearchView.setQueryHint(getString(R.string.searchview_queryhint));
+        _searchView.setQueryHint(getString(R.string.searchview_queryhint));
 
-        mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+        _searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String searchWord) {
                 // search toilet name or address by input words by Submit button or EnterKey.
@@ -133,22 +129,7 @@ public class MainActivity extends FragmentActivity{
                 break;
         }
     }
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        //int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        //if (id == R.id.action_settings) {
-         //   return true;
-        //}
-        return super.onOptionsItemSelected(item);
-    }
     @Override
     public void onPause(){
         // ネットワーク状態の監視をストップ.
