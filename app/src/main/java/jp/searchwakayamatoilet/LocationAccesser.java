@@ -27,7 +27,6 @@ import com.annimon.stream.Stream;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
-import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
@@ -36,7 +35,6 @@ import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -65,6 +63,7 @@ public class LocationAccesser  implements
     private DatabaseAccesser.ToiletInfoModel mToiletInfoModel;
 
     private boolean mIsDataLoaded;
+    private boolean mIsTransactionStarted = false;
 
     public void initialize(final MainActivity mainActivity, final LocationManager locationManager){
         sLocationAccesser = this;
@@ -87,22 +86,18 @@ public class LocationAccesser  implements
         }
         // show map.
         mapFragment.getMapAsync(
-                new OnMapReadyCallback() {
-                    @Override
-                    public void onMapReady(GoogleMap gMap) {
-                        mMap = gMap;
-                        mMap.setMyLocationEnabled(true);
-                        // 和歌山県庁に移動.
-                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(34.22501, 135.1678), 9));
-                        mMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
-                            @Override
-                            public boolean onMyLocationButtonClick() {
-                                sLocationAccesser.moveToMyLocation(mainActivity);
-                                return false;
-                            }
-                        });
-                        sLocationAccesser.loadCsvData(mainActivity);
-                    }
+                // OnMapReadyCallback - onMapReady(GoogleMap gMap).
+                gMap -> {
+                    mMap = gMap;
+                    mMap.setMyLocationEnabled(true);
+                    // 和歌山県庁に移動.
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(34.22501, 135.1678), 9));
+                    // GoogleMap.OnMyLocationButtonClickListener - onMyLocationButtonClick().
+                    mMap.setOnMyLocationButtonClickListener(() -> {
+                        sLocationAccesser.moveToMyLocation(mainActivity);
+                        return false;
+                    });
+                    sLocationAccesser.loadCsvData(mainActivity);
                 });
     }
     public void loadCsvData(final MainActivity mainActivity){
@@ -112,101 +107,97 @@ public class LocationAccesser  implements
         handlerThread.start();
 
         Handler handler = new Handler(handlerThread.getLooper());
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                final ArrayList<DatabaseAccesser.ToiletInfoModel> aryToiletInfo = mDbAccesser.search(mSqliteDb);
+        // Runnable() - run().
+        handler.post(() -> {
+            final ArrayList<DatabaseAccesser.ToiletInfoModel> aryToiletInfo = mDbAccesser.search(mSqliteDb);
 
-                if (mIsDataLoaded
-                        && aryToiletInfo != null
-                        && aryToiletInfo.size() > 0) {
-                    for (DatabaseAccesser.ToiletInfoModel toiletInfo : aryToiletInfo) {
+            if (mIsDataLoaded
+                    && aryToiletInfo != null
+                    && aryToiletInfo.size() > 0) {
+                for (DatabaseAccesser.ToiletInfoModel toiletInfo : aryToiletInfo) {
 
-                        // Add marker on UI Thread.
-                        Message msgToiletInfo = new Message();
-                        msgToiletInfo.what = R.string.handler_get_csv;
-                        msgToiletInfo.obj = toiletInfo;
-                        executeOnUiThreadHandler.sendMessage(msgToiletInfo);
-                    }
-                } else if (mNetworkAccesser.checkIsNetworkConnected()) {
-                    Geocoder geocoder = new Geocoder(mainActivity, Locale.getDefault());
-                    AssetManager asmAsset = mainActivity.getResources().getAssets();
-                    try {
-                        // CSVの読み込み.
-                        InputStream ipsInput = asmAsset.open("toilet-map.csv");
-                        InputStreamReader inputStreamReader = new InputStreamReader(ipsInput);
-                        BufferedReader bufferReader = new BufferedReader(inputStreamReader);
-                        String strLine = "";
-                        String[] strSplited;
-                        Pattern p = Pattern.compile("^[0-9]+");
+                    // Add marker on UI Thread.
+                    Message msgToiletInfo = new Message();
+                    msgToiletInfo.what = R.string.handler_get_csv;
+                    msgToiletInfo.obj = toiletInfo;
+                    executeOnUiThreadHandler.sendMessage(msgToiletInfo);
+                }
+            } else if (mNetworkAccesser.checkIsNetworkConnected()) {
+                Geocoder geocoder = new Geocoder(mainActivity, Locale.getDefault());
+                AssetManager asmAsset = mainActivity.getResources().getAssets();
+                try {
+                    // CSVの読み込み.
+                    InputStream ipsInput = asmAsset.open("toilet-map.csv");
+                    InputStreamReader inputStreamReader = new InputStreamReader(ipsInput);
+                    BufferedReader bufferReader = new BufferedReader(inputStreamReader);
+                    String strLine = "";
+                    String[] strSplited;
+                    Pattern p = Pattern.compile("^[0-9]+");
 
-                        // Transactionの開始.
-                    //    mSqliteDb.beginTransaction();
+                    // Transactionの開始.
+                    mSqliteDb.beginTransaction();
+                    mIsTransactionStarted = true;
 
-                        // 1行ずつ読み込む.
-                        while ((strLine = bufferReader.readLine()) != null) {
-                            // とりあえず数値から始まっている行のみ
-                            if (p.matcher(strLine).find()) {
-                                // とりあえずSplit後に4件以上データがある行のみ.
-                                strSplited = strLine.split(",");
-                                if (strSplited.length >= 4) {
+                    // 1行ずつ読み込む.
+                    while ((strLine = bufferReader.readLine()) != null) {
+                        // とりあえず数値から始まっている行のみ
+                        if (p.matcher(strLine).find()) {
+                            // とりあえずSplit後に4件以上データがある行のみ.
+                            strSplited = strLine.split(",");
+                            if (strSplited.length >= 4) {
 
-                                    List addressList = geocoder.getFromLocationName(strSplited[3], 1);
-                                    if (!addressList.isEmpty()) {
+                                List addressList = geocoder.getFromLocationName(strSplited[3], 1);
+                                if (!addressList.isEmpty()) {
 
-                                        mSqliteDb.beginTransaction();
+                                    Address address = (Address) addressList.get(0);
 
-                                        Address address = (Address) addressList.get(0);
+                                    mToiletInfoModel.toiletName = strSplited[1];
+                                    // 都道府県はひとまず和歌山固定.
+                                    mToiletInfoModel.district = "和歌山";
+                                    mToiletInfoModel.municipality = strSplited[2];
+                                    mToiletInfoModel.address = strSplited[3];
+                                    mToiletInfoModel.latitude = address.getLatitude();
+                                    mToiletInfoModel.longitude = address.getLongitude();
+                                    mToiletInfoModel.availableTime = strSplited[4];
+                                    String strNearbySightseeing = (strSplited.length > 35) ? strSplited[35] : "";
+                                    mToiletInfoModel.nearbySightseeing = strNearbySightseeing;
 
-                                        mToiletInfoModel.toiletName = strSplited[1];
-                                        // 都道府県はひとまず和歌山固定.
-                                        mToiletInfoModel.district = "和歌山";
-                                        mToiletInfoModel.municipality = strSplited[2];
-                                        mToiletInfoModel.address = strSplited[3];
-                                        mToiletInfoModel.latitude = address.getLatitude();
-                                        mToiletInfoModel.longitude = address.getLongitude();
-                                        mToiletInfoModel.availableTime = strSplited[4];
-                                        String strNearbySightseeing = (strSplited.length > 35) ? strSplited[35] : "";
-                                        mToiletInfoModel.nearbySightseeing = strNearbySightseeing;
+                                    // Add marker on UI Thread.
+                                    Message msgToiletInfo = new Message();
+                                    msgToiletInfo.what = R.string.handler_get_csv;
+                                    msgToiletInfo.obj = mToiletInfoModel;
+                                    executeOnUiThreadHandler.sendMessage(msgToiletInfo);
 
-                                        // Add marker on UI Thread.
-                                        Message msgToiletInfo = new Message();
-                                        msgToiletInfo.what = R.string.handler_get_csv;
-                                        msgToiletInfo.obj = mToiletInfoModel;
-                                        executeOnUiThreadHandler.sendMessage(msgToiletInfo);
+                                    final String toiletName = strSplited[1];
+                                    final String toiletAddress = strSplited[3];
+                                    long lngCount = Stream.of(aryToiletInfo)
+                                            .filter(toiletInfo -> (toiletInfo.toiletName.equals(toiletName)
+                                                    && toiletInfo.address.equals(toiletAddress))).count();
 
-                                        final String toiletName = strSplited[1];
-                                        final String toiletAddress = strSplited[3];
-                                        long lngCount = Stream.of(aryToiletInfo)
-                                                .filter(toiletInfo -> (toiletInfo.toiletName.equals(toiletName)
-                                                        && toiletInfo.address.equals(toiletAddress))).count();
-
-                                        if(lngCount <= 0){
-                                            // if there is no same data, insert as new one.
-                                            mDbAccesser.insertInfo(mSqliteDb, mToiletInfoModel);
-                                        }
-
-                                        mSqliteDb.setTransactionSuccessful();
-                                        mSqliteDb.endTransaction();
+                                    if (lngCount <= 0) {
+                                        // if there is no same data, insert as new one.
+                                        mDbAccesser.insertInfo(mSqliteDb, mToiletInfoModel);
                                     }
                                 }
                             }
                         }
-                        // CommitしてTransactionを終了.
-             //           mSqliteDb.setTransactionSuccessful();
-             //           mSqliteDb.endTransaction();
-
-                        bufferReader.close();
-                        ipsInput.close();
-                      //  mIsDataLoaded = true;
-
-                    } catch (IOException e) {
-                        // TODO: error処理.
-                        Log.d("SWT", "Exception:" + e.getLocalizedMessage());
-                    } catch (SQLiteException e) {
-                        // TODO: error処理.
-                        Log.d("SWT", "Exception:" + e.getLocalizedMessage());
                     }
+                    // CommitしてTransactionを終了.
+                    mSqliteDb.setTransactionSuccessful();
+                    mSqliteDb.endTransaction();
+
+                    mIsTransactionStarted = false;
+
+                    bufferReader.close();
+                    ipsInput.close();
+                    mIsDataLoaded = true;
+
+                } catch (IOException e) {
+                    // TODO: error処理.
+                    Log.d("SWT", "Exception:" + e.getLocalizedMessage());
+                } catch (SQLiteException e) {
+                    // TODO: error処理.
+                    Log.d("SWT", "Exception:" + e.getLocalizedMessage());
                 }
             }
         });
@@ -232,27 +223,26 @@ public class LocationAccesser  implements
 
         PendingResult<LocationSettingsResult> result =
                 LocationServices.SettingsApi.checkLocationSettings(mGoogleApiClient, builder.build());
-        result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
-            @Override
-            public void onResult(LocationSettingsResult result) {
-                final Status status = result.getStatus();
-                switch (status.getStatusCode()) {
-                    case LocationSettingsStatusCodes.SUCCESS:
-                        // GPSがOnなら無視.
-                        break;
-                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                        try {
-                            // GPSがOffならIntent表示. onActivityResultで結果取得.
-                            status.startResolutionForResult(
-                                    activity, R.string.request_enable_location);
-                        } catch (IntentSender.SendIntentException e) {
-                            // TODO; 例外処理.
-                        }
-                        break;
-                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-                        // Locationが無効なら無視.
-                        break;
-                }
+        // ResultCallback<LocationSettingsResult>() - onResult(LocationSettingsResult settingsResult).
+        result.setResultCallback(
+            settingsResult -> {
+            final Status status = settingsResult.getStatus();
+            switch (status.getStatusCode()) {
+                case LocationSettingsStatusCodes.SUCCESS:
+                    // GPSがOnなら無視.
+                    break;
+                case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                    try {
+                        // GPSがOffならIntent表示. onActivityResultで結果取得.
+                        status.startResolutionForResult(
+                                activity, R.string.request_enable_location);
+                    } catch (IntentSender.SendIntentException e) {
+                        // TODO; 例外処理.
+                    }
+                    break;
+                case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                    // Locationが無効なら無視.
+                    break;
             }
         });
     }
@@ -264,6 +254,15 @@ public class LocationAccesser  implements
         }
     }
     public void onPause(Activity activeActivity){
+
+        if(mIsTransactionStarted
+                && ! mIsDataLoaded){
+            // if inserting datas hasn't finished, end transaction.
+            mSqliteDb.setTransactionSuccessful();
+            mSqliteDb.endTransaction();
+            mIsTransactionStarted = false;
+        }
+
         // ネットワーク状態の監視をストップ.
         activeActivity.unregisterReceiver(mNetworkAccesser);
     }
@@ -313,20 +312,18 @@ public class LocationAccesser  implements
         handlerThread.start();
 
         Handler handler = new Handler(handlerThread.getLooper());
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                mDbAccesser.setSearchCriteriaFromFreeWord(strWord);
-                ArrayList<DatabaseAccesser.ToiletInfoModel> aryToiletInfo = mDbAccesser.search(mSqliteDb);
+        // Runnable() - run().
+        handler.post(() -> {
+            mDbAccesser.setSearchCriteriaFromFreeWord(strWord);
+            ArrayList<DatabaseAccesser.ToiletInfoModel> aryToiletInfo = mDbAccesser.search(mSqliteDb);
 
-                if (aryToiletInfo != null) {
-                    for (DatabaseAccesser.ToiletInfoModel toiletInfo : aryToiletInfo) {
-                        // Add marker on UI Thread.
-                        Message msgToiletInfo = new Message();
-                        msgToiletInfo.what = R.string.handler_get_csv;
-                        msgToiletInfo.obj = toiletInfo;
-                        executeOnUiThreadHandler.sendMessage(msgToiletInfo);
-                    }
+            if (aryToiletInfo != null) {
+                for (DatabaseAccesser.ToiletInfoModel toiletInfo : aryToiletInfo) {
+                    // Add marker on UI Thread.
+                    Message msgToiletInfo = new Message();
+                    msgToiletInfo.what = R.string.handler_get_csv;
+                    msgToiletInfo.obj = toiletInfo;
+                    executeOnUiThreadHandler.sendMessage(msgToiletInfo);
                 }
             }
         });
