@@ -111,8 +111,7 @@ public class LocationAccesser  implements
         handler.post(() -> {
             final ArrayList<DatabaseAccesser.ToiletInfoModel> aryToiletInfo = mDbAccesser.search(mSqliteDb);
 
-            if (mIsDataLoaded
-                    && aryToiletInfo != null
+            if (aryToiletInfo != null
                     && aryToiletInfo.size() > 0) {
                 for (DatabaseAccesser.ToiletInfoModel toiletInfo : aryToiletInfo) {
 

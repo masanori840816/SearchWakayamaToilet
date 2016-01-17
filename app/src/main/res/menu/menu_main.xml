@@ -8,5 +8,8 @@
         android:icon="@mipmap/ic_search_black_24dp"
         app:showAsAction="always"
         app:actionViewClass="android.support.v7.widget.SearchView" />
-
+    <item android:id="@+id/updatebutton"
+        android:title="@string/action_update"
+        android:icon="@mipmap/ic_cached_black_24dp"
+        app:showAsAction="always"/>
 </menu>
