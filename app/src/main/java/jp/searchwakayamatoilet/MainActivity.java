@@ -21,6 +21,11 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 
 import android.support.v4.app.FragmentActivity;
+import android.view.MenuItem;
+
+import android.view.View;
+import android.view.animation.RotateAnimation;import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.SupportMapFragment;
@@ -87,6 +92,12 @@ public class MainActivity extends FragmentActivity{
                 return false;
             }
         });
+        // MenuItem.OnMenuItemClickListener() - onMenuItemClick(MenuItem item).
+        _toolbar.getMenu().findItem(R.id.updatebutton).setOnMenuItemClickListener(
+                item -> {
+                    // TODO: load CSV.
+                    return false;
+                });
 
         // Android6.0以降なら権限確認.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {

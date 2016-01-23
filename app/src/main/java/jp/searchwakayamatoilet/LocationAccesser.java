@@ -61,6 +61,7 @@ public class LocationAccesser  implements
     private DatabaseAccesser mDbAccesser;
     private SQLiteDatabase mSqliteDb;
     private DatabaseAccesser.ToiletInfoModel mToiletInfoModel;
+    private LoadingPanelViewer mLoadingPanelViewer;
 
     private boolean mIsDataLoaded;
     private boolean mIsTransactionStarted = false;
@@ -76,6 +77,8 @@ public class LocationAccesser  implements
         mSqliteDb = mDbAccesser.getWritableDatabase();
 
         mToiletInfoModel = mDbAccesser.new ToiletInfoModel();
+
+        mLoadingPanelViewer = new LoadingPanelViewer(mainActivity);
 
         mIsDataLoaded = false;
     }
@@ -122,6 +125,7 @@ public class LocationAccesser  implements
                     executeOnUiThreadHandler.sendMessage(msgToiletInfo);
                 }
             } else if (mNetworkAccesser.checkIsNetworkConnected()) {
+                executeOnUiThreadHandler.sendEmptyMessage(R.string.handler_show_loading);
                 Geocoder geocoder = new Geocoder(mainActivity, Locale.getDefault());
                 AssetManager asmAsset = mainActivity.getResources().getAssets();
                 try {
@@ -190,6 +194,8 @@ public class LocationAccesser  implements
                     bufferReader.close();
                     ipsInput.close();
                     mIsDataLoaded = true;
+
+                    executeOnUiThreadHandler.sendEmptyMessage(R.string.handler_hide_loading);
 
                 } catch (IOException e) {
                     // TODO: error処理.
@@ -331,11 +337,16 @@ public class LocationAccesser  implements
         public void handleMessage(Message msg) {
             switch (msg.what){
                 case R.string.handler_get_csv:
-
                     if(msg.obj != null){
                         DatabaseAccesser.ToiletInfoModel toiletInfo = (DatabaseAccesser.ToiletInfoModel)msg.obj;
                         addMarker(toiletInfo.toiletName, toiletInfo.latitude, toiletInfo.longitude);
                     }
+                    break;
+                case R.string.handler_show_loading:
+                    mLoadingPanelViewer.show();
+                    break;
+                case R.string.handler_hide_loading:
+                    mLoadingPanelViewer.close();
                     break;
             }
         }
