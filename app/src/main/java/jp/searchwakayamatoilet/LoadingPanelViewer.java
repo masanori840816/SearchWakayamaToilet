@@ -4,25 +4,33 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.view.KeyEvent;
 
 /**
  * Created by masanori on 2016/01/21.
  */
 public class LoadingPanelViewer {
-    Context mContext;
-    ProgressDialog mProgressDialog;
+    private ProgressDialog progressDialog;
 
-    public LoadingPanelViewer(Context context){
-        mContext = context;
-        mProgressDialog = new ProgressDialog(context);
-        mProgressDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+    public LoadingPanelViewer(Context context, IPageView currentPage){
+        progressDialog = new ProgressDialog(context);
+        progressDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        // DialogInterface.OnKeyListener() - onKey(DialogInterface dialog, int keyCode, KeyEvent event).
+        progressDialog.setOnKeyListener(
+                (dialog, keyCode, event) -> {
+                    if (keyCode == KeyEvent.KEYCODE_BACK) {
+                        currentPage.stopLoading();
+                    }
+                    return false;
+                });
+        progressDialog.setCancelable(false);
     }
     public void show(){
-        mProgressDialog.show();
-        mProgressDialog.setContentView(R.layout.layout_loading);
-        mProgressDialog.setCancelable(false);
+        progressDialog.show();
+        progressDialog.setContentView(R.layout.layout_loading);
+
     }
-    public void close(){
-        mProgressDialog.dismiss();
+    public void hide(){
+        progressDialog.dismiss();
     }
 }
