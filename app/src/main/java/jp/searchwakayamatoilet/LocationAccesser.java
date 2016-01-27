@@ -52,10 +52,9 @@ public class LocationAccesser  implements
     private boolean mIsDataLoading;
 
     private Activity currentActivity;
-    private IPageView currentView;
-    private ToiletDataLoader dataLoader;
 
-    public LocationAccesser(final LocationManager locationManager, Activity newActivity, IPageView newView){
+
+    public LocationAccesser(final LocationManager locationManager, Activity newActivity){
         locationAccesser = this;
         mLocationManager = locationManager;
 
@@ -67,9 +66,8 @@ public class LocationAccesser  implements
         mHandlerThread = new HandlerThread("AddMarker");
 
         currentActivity = newActivity;
-        currentView = newView;
     }
-    public void getGoogleMap(final FragmentActivity fragmentActivity){
+    public void getGoogleMap(final FragmentActivity fragmentActivity, MainPresenter presenter){
         // get GoogleMap instance.
         if (map != null) {
             return;
@@ -77,45 +75,22 @@ public class LocationAccesser  implements
         // show map.
         ((SupportMapFragment) fragmentActivity.getSupportFragmentManager().findFragmentById(R.id.map))
                 .getMapAsync(
-                // OnMapReadyCallback - onMapReady(GoogleMap gMap).
-                gMap -> {
-                    map = gMap;
-                    map.setMyLocationEnabled(true);
-                    // 和歌山県庁に移動.
-                    map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(34.22501, 135.1678), 9));
-                    // GoogleMap.OnMyLocationButtonClickListener - onMyLocationButtonClick().
-                    map.setOnMyLocationButtonClickListener(() -> {
-                        locationAccesser.moveToMyLocation(fragmentActivity);
-                        return false;
-                    });
-                    locationAccesser.loadCsvData(true);
-                });
+                        // OnMapReadyCallback - onMapReady(GoogleMap gMap).
+                        gMap -> {
+                            map = gMap;
+                            map.setMyLocationEnabled(true);
+                            // 和歌山県庁に移動.
+                            map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(34.22501, 135.1678), 9));
+                            // GoogleMap.OnMyLocationButtonClickListener - onMyLocationButtonClick().
+                            map.setOnMyLocationButtonClickListener(() -> {
+                                locationAccesser.moveToMyLocation(fragmentActivity);
+                                return false;
+                            });
+                            presenter.loadCsvData(true);
+                        });
     }
-    public void loadCsvData(boolean isExistingDataUsed){
+    public void clearMap(){
         map.clear();
-        dataLoader = new ToiletDataLoader(currentActivity, currentView);
-        dataLoader.setIsExistingDataUsed(isExistingDataUsed);
-        dataLoader.execute(0);
-    }
-
-    public void stopLoadingCsvData(){
-        if(mIsDataLoading){
-//            mLoadingPanelViewer.hide();
-           // if(mIsTransactionStarted){
-                if(! mHandlerThread.isAlive()){
-                    mHandlerThread.start();
-                }
-                Handler handler = new Handler(mHandlerThread.getLooper());
-                // Runnable() - run().
-                handler.post(() -> {
-                    // if inserting datas hasn't finished, end transaction.
-                    mSqliteDb.setTransactionSuccessful();
-                    mSqliteDb.endTransaction();
-                });
-
-            mHandlerThread.interrupt();
-           // }
-        }
     }
     @Override
     public void onConnectionFailed(ConnectionResult result) {

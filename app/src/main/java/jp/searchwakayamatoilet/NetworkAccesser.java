@@ -21,8 +21,11 @@ public class NetworkAccesser{
         {
             return true;
         }
-        // ネットワークにつながっていなければToast表示.
-        Toast.makeText(currentActivity, R.string.toast_no_networks, Toast.LENGTH_SHORT).show();
+        currentActivity.runOnUiThread(
+            () -> {
+                // ネットワークにつながっていなければToast表示.
+                Toast.makeText(currentActivity, R.string.toast_no_networks, Toast.LENGTH_SHORT).show();
+            });
         return false;
     }
 }

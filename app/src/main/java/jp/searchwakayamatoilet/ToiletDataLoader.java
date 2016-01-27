@@ -30,27 +30,25 @@ public class ToiletDataLoader extends AsyncTask<Integer, Integer, Integer> {
     private boolean isExistingDataUsed;
     private boolean isTransactionStarted;
     private Activity currentActivity;
-    private IPageView currentView;
-    private boolean isDataLoading;
-    private NetworkAccesser networkAccesser;
-    private LoadingPanelViewer loadingPanelViewer;
+    private MainPresenter currentPresenter;
+    private boolean isLoadingCancelled;
 
     private DatabaseAccesser.ToiletInfoModel toiletInfoModel;
 
-    public void setIsExistingDataUsed(boolean newValue){
-        isExistingDataUsed = newValue;
-    }
-    public ToiletDataLoader(Activity newActivity, IPageView newView){
-        super();
+    public void init(Activity newActivity, boolean newIsExistingDataUsed, MainPresenter newPresenter){
+        currentPresenter = newPresenter;
         currentActivity = newActivity;
-        currentView = newView;
+        isExistingDataUsed = newIsExistingDataUsed;
 
         dbAccesser = new DatabaseAccesser(newActivity);
         sqlite = dbAccesser.getWritableDatabase();
         toiletInfoModel = dbAccesser.new ToiletInfoModel();
-        networkAccesser = new NetworkAccesser();
-        loadingPanelViewer = new LoadingPanelViewer(newActivity, newView);
+        isLoadingCancelled = false;
     }
+    public void stopLoading(){
+        isLoadingCancelled = true;
+    }
+
 
     @Override
     protected Integer doInBackground(Integer... integer) {
@@ -61,22 +59,16 @@ public class ToiletDataLoader extends AsyncTask<Integer, Integer, Integer> {
                 && aryToiletInfo != null
                 && aryToiletInfo.size() > 0) {
             for (DatabaseAccesser.ToiletInfoModel toiletInfo : aryToiletInfo) {
-
+                if(isLoadingCancelled){
+                    break;
+                }
                 // Add marker on UI Thread.
-                // Runnable() - run().
-                currentActivity.runOnUiThread(
-                        () -> {
-                            currentView.addMarker(toiletInfo.toiletName, toiletInfo.latitude, toiletInfo.longitude);
-                        });
+                currentPresenter.addMarker(toiletInfo.toiletName, toiletInfo.latitude, toiletInfo.longitude);
             }
-        } else if (networkAccesser.checkIsNetworkConnected(currentActivity)) {
-            isDataLoading = true;
+        } else if (currentPresenter.checkIsNetworkConnected()) {
             // Runnable() - run().
-            currentActivity.runOnUiThread(
-                    () -> {
-                        // show loading dialog.
-                        loadingPanelViewer.show();
-                    });
+            currentPresenter.startLoadingCsvData();
+
             Geocoder geocoder = new Geocoder(currentActivity, Locale.getDefault());
             AssetManager asmAsset = currentActivity.getResources().getAssets();
             try {
@@ -88,12 +80,17 @@ public class ToiletDataLoader extends AsyncTask<Integer, Integer, Integer> {
                 String[] strSplited;
                 Pattern p = Pattern.compile("^[0-9]+");
 
-                // Transactionの開始.
-                sqlite.beginTransaction();
-                isTransactionStarted = true;
-
                 // 1行ずつ読み込む.
                 while (bufferReader.readLine() != null) {
+                    if(isLoadingCancelled){
+                        if(isTransactionStarted) {
+                            // CommitしてTransactionを終了.
+                            sqlite.setTransactionSuccessful();
+                            sqlite.endTransaction();
+                        }
+                        break;
+                    }
+
                     strLine = bufferReader.readLine();
 
                     // とりあえず数値から始まっている行のみ
@@ -119,11 +116,7 @@ public class ToiletDataLoader extends AsyncTask<Integer, Integer, Integer> {
                                 toiletInfoModel.nearbySightseeing = strNearbySightseeing;
 
                                 // Add marker on UI Thread.
-                                // Runnable() - run().
-                                currentActivity.runOnUiThread(
-                                        () -> {
-                                            currentView.addMarker(toiletInfoModel.toiletName, toiletInfoModel.latitude, toiletInfoModel.longitude);
-                                        });
+                                currentPresenter.addMarker(toiletInfoModel.toiletName, toiletInfoModel.latitude, toiletInfoModel.longitude);
 
                                 final String toiletName = strSplited[1];
                                 final String toiletAddress = strSplited[3];
@@ -132,6 +125,12 @@ public class ToiletDataLoader extends AsyncTask<Integer, Integer, Integer> {
                                                 && toiletInfo.address.equals(toiletAddress))).count();
 
                                 if (lngCount <= 0) {
+                                    if(isTransactionStarted){
+                                        // Transactionの開始.
+                                        sqlite.beginTransaction();
+                                        isTransactionStarted = true;
+                                    }
+
                                     // if there is no same data, insert as new one.
                                     dbAccesser.insertInfo(sqlite, toiletInfoModel);
                                 }
@@ -139,21 +138,16 @@ public class ToiletDataLoader extends AsyncTask<Integer, Integer, Integer> {
                         }
                     }
                 }
-                // CommitしてTransactionを終了.
-                sqlite.setTransactionSuccessful();
-                sqlite.endTransaction();
+                if(isTransactionStarted) {
+                    // CommitしてTransactionを終了.
+                    sqlite.setTransactionSuccessful();
+                    sqlite.endTransaction();
+                }
 
                 bufferReader.close();
                 ipsInput.close();
-                isDataLoading = false;
 
-                // Runnable() - run().
-                currentActivity.runOnUiThread(
-                        () -> {
-                            // hide Loading Dialog.
-                            loadingPanelViewer.hide();
-                        }
-                );
+                currentPresenter.stopLoadingCsvData();
 
             } catch (IOException e) {
                 // TODO: error処理.
@@ -172,7 +166,8 @@ public class ToiletDataLoader extends AsyncTask<Integer, Integer, Integer> {
     @Override
     protected void onCancelled(){
         if(isTransactionStarted){
-
+            sqlite.setTransactionSuccessful();
+            sqlite.endTransaction();
         }
     }
 }

@@ -15,12 +15,12 @@ import android.support.v4.app.FragmentActivity;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class MainActivity extends FragmentActivity implements IPageView {
+public class MainActivity extends FragmentActivity{
 
     private MainActivity mainActivity;
 
-    private TimerController mTimeController;
-    private Timer mTmrGettingLocationTimer;
+    private TimerController timeController;
+    private Timer tmrGettingLocationTimer;
 
     private MainPresenter presenter;
 
@@ -29,11 +29,11 @@ public class MainActivity extends FragmentActivity implements IPageView {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        presenter = new MainPresenter(this, this);
+        presenter = new MainPresenter(this);
 
         mainActivity = this;
 
-        mTimeController = new TimerController();
+        timeController = new TimerController();
 
         Toolbar _toolbar = (Toolbar) findViewById(R.id.toolbar);
         _toolbar.inflateMenu(R.menu.menu_main);
@@ -83,8 +83,8 @@ public class MainActivity extends FragmentActivity implements IPageView {
             case R.string.request_enable_location:
                 if(resultCode == RESULT_OK){
                     // GPSをONにした直後は値が取れない場合があるのでTimerで1秒待つ.
-                    mTmrGettingLocationTimer = new Timer();
-                    mTmrGettingLocationTimer.schedule(mTimeController, 1000L);
+                    tmrGettingLocationTimer = new Timer();
+                    tmrGettingLocationTimer.schedule(timeController, 1000L);
                 }
                 break;
         }
@@ -106,11 +106,5 @@ public class MainActivity extends FragmentActivity implements IPageView {
                         presenter.moveCurrentLocation();
                     });
         }
-    }
-    public void stopLoading(){
-        presenter.stopLoadingCsvData();
-    }
-    public void addMarker(String strToiletName, double dblLatitude, double dblLongitude){
-        presenter.addMarker(strToiletName, dblLatitude, dblLongitude);
     }
 }

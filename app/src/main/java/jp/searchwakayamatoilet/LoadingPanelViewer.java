@@ -12,14 +12,14 @@ import android.view.KeyEvent;
 public class LoadingPanelViewer {
     private ProgressDialog progressDialog;
 
-    public LoadingPanelViewer(Context context, IPageView currentPage){
+    public LoadingPanelViewer(Context context, MainPresenter presenter){
         progressDialog = new ProgressDialog(context);
         progressDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         // DialogInterface.OnKeyListener() - onKey(DialogInterface dialog, int keyCode, KeyEvent event).
         progressDialog.setOnKeyListener(
                 (dialog, keyCode, event) -> {
                     if (keyCode == KeyEvent.KEYCODE_BACK) {
-                        currentPage.stopLoading();
+                        presenter.stopLoadingCsvData();
                     }
                     return false;
                 });

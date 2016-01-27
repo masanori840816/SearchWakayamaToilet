@@ -26,8 +26,8 @@ public class DatabaseAccesser extends SQLiteOpenHelper{
         public String availableTime;
         public String nearbySightseeing;
     }
-    private String mStrSearchCriteria;
-    private String[] mStrSearchParameters;
+    private String strSearchCriteria;
+    private String[] strSearchParameters;
 
     public DatabaseAccesser(Context context){
         super(context, "toiletinfo.db", null, 1);
@@ -54,7 +54,7 @@ public class DatabaseAccesser extends SQLiteOpenHelper{
         StringBuilder _newSearchCriteria = new StringBuilder();
 
         // toiletname, addressが対象.
-        mStrSearchParameters = new String[splittedWords.length * 2];
+        strSearchParameters = new String[splittedWords.length * 2];
 
         for(int i = 0, j = 0; i < splittedWords.length; i++){
             if(i > 0){
@@ -65,17 +65,17 @@ public class DatabaseAccesser extends SQLiteOpenHelper{
             StringBuilder _newParameter = new StringBuilder("%");
             _newParameter.append(splittedWords[i]);
             _newParameter.append("%");
-            mStrSearchParameters[j] = _newParameter.toString();
-            mStrSearchParameters[j + 1] = _newParameter.toString();
+            strSearchParameters[j] = _newParameter.toString();
+            strSearchParameters[j + 1] = _newParameter.toString();
             j += 2;
         }
 
-        mStrSearchCriteria = _newSearchCriteria.toString();
+        strSearchCriteria = _newSearchCriteria.toString();
     }
     public ArrayList<ToiletInfoModel> search(SQLiteDatabase db){
-        ArrayList<ToiletInfoModel> aryToiletInfo = new ArrayList<ToiletInfoModel>();
+        ArrayList<ToiletInfoModel> aryToiletInfo = new ArrayList();
 
-        Cursor _cursor = db.query("toiletinfo", null, mStrSearchCriteria, mStrSearchParameters, null, null, "id ASC", null);
+        Cursor _cursor = db.query("toiletinfo", null, strSearchCriteria, strSearchParameters, null, null, "id ASC", null);
 
         _cursor.moveToFirst();
 
@@ -94,8 +94,8 @@ public class DatabaseAccesser extends SQLiteOpenHelper{
             _cursor.moveToNext();
         }
         // 検索後はNullに戻す.
-        mStrSearchCriteria = null;
-        mStrSearchParameters = null;
+        strSearchCriteria = null;
+        strSearchParameters = null;
 
         return aryToiletInfo;
     }
