@@ -11,7 +11,12 @@ import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 
 import android.support.v4.app.FragmentActivity;
+import android.util.Log;
+import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 
+import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -23,6 +28,10 @@ public class MainActivity extends FragmentActivity{
     private Timer tmrGettingLocationTimer;
 
     private MainPresenter presenter;
+    private ListView suggestList;
+    private ArrayList<String> suggestItemSearchAll;
+    private ArrayList<String> suggestItems;
+    private ArrayAdapter<String> suggestListAdapter;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -44,9 +53,17 @@ public class MainActivity extends FragmentActivity{
 
         _searchView.setQueryHint(getString(R.string.searchview_queryhint));
 
+        // SearchView.OnCloseListener() - onClose().
+        _searchView.setOnCloseListener(
+                () -> {
+                    suggestList.setVisibility(View.INVISIBLE);
+                    return false;
+                });
         _searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String searchWord) {
+                // hide suggest items.
+                suggestList.setVisibility(View.INVISIBLE);
                 // search toilet name or address by input words by Submit button or EnterKey.
                 presenter.setMarkersByFreeWord(searchWord);
                 return false;
@@ -54,10 +71,40 @@ public class MainActivity extends FragmentActivity{
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                // 入力される度に呼び出される
+                // if the textarea empty, show suggest items.
+                if (newText.equals("")) {
+                    suggestList.setVisibility(View.VISIBLE);
+                } else {
+                    suggestList.setVisibility(View.INVISIBLE);
+                }
                 return false;
             }
         });
+        suggestList = (ListView) findViewById(R.id.suggest_list);
+
+        // set suggest items(2016.01.13: only for searching all items).
+        suggestItemSearchAll = new ArrayList<>();
+        suggestItemSearchAll.add(getString(R.string.suggest_search_all));
+
+        suggestItems = suggestItemSearchAll;
+
+        // Adapter - ArrayAdapter
+        suggestListAdapter = new ArrayAdapter<>(
+                this,
+                R.layout.layout_suggest_item,
+                suggestItems
+        );
+
+        // set on listview.
+        suggestList.setAdapter(suggestListAdapter);
+        // AdapterView.OnItemClickListener() - onItemClick(AdapterView<?> parent, View view, int position, long id).
+        suggestList.setOnItemClickListener(
+                (parent, view, position, id) -> {
+                    suggestList.setVisibility(View.INVISIBLE);
+                    presenter.setMarkersByFreeWord("");
+                });
+        suggestList.setVisibility(View.INVISIBLE);
+
         // MenuItem.OnMenuItemClickListener() - onMenuItemClick(MenuItem item).
         _toolbar.getMenu().findItem(R.id.updatebutton).setOnMenuItemClickListener(
                 item -> {

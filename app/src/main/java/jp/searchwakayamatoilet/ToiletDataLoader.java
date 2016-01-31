@@ -1,29 +1,29 @@
 package jp.searchwakayamatoilet;
 
-import android.app.Activity;
-import android.content.res.AssetManager;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteException;
-import android.location.Address;
-import android.location.Geocoder;
-import android.os.AsyncTask;
-import android.util.Log;
+        import android.app.Activity;
+        import android.content.res.AssetManager;
+        import android.database.sqlite.SQLiteDatabase;
+        import android.database.sqlite.SQLiteException;
+        import android.location.Address;
+        import android.location.Geocoder;
+        import android.os.AsyncTask;
+        import android.util.Log;
 
-import com.annimon.stream.Stream;
+        import com.annimon.stream.Stream;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.regex.Pattern;
+        import java.io.BufferedReader;
+        import java.io.IOException;
+        import java.io.InputStream;
+        import java.io.InputStreamReader;
+        import java.util.ArrayList;
+        import java.util.List;
+        import java.util.Locale;
+        import java.util.regex.Pattern;
 
 /**
  * Created by masanori on 2016/01/24.
  */
-public class ToiletDataLoader extends AsyncTask<Integer, Integer, Integer> {
+public class ToiletDataLoader extends AsyncTask<Void, Void, Integer> {
 
     private DatabaseAccesser dbAccesser;
     private SQLiteDatabase sqlite;
@@ -51,7 +51,7 @@ public class ToiletDataLoader extends AsyncTask<Integer, Integer, Integer> {
 
 
     @Override
-    protected Integer doInBackground(Integer... integer) {
+    protected Integer doInBackground(Void... params) {
         final ArrayList<DatabaseAccesser.ToiletInfoModel> aryToiletInfo = dbAccesser.search(sqlite);
         isTransactionStarted = false;
 

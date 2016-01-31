@@ -56,7 +56,7 @@ public class MainPresenter {
         locationAccesser.clearMap();
         dataLoader = new ToiletDataLoader();
         dataLoader.init(currentActivity, isExistingDataUsed, this);
-        dataLoader.execute(0);
+        dataLoader.execute();
     }
     public void setMarkersByFreeWord(String searchWord) {
         locationAccesser.setMarkersByFreeWord(currentActivity, searchWord);
