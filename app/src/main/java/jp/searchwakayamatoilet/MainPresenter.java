@@ -2,7 +2,6 @@ package jp.searchwakayamatoilet;
 
 import android.Manifest;
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
@@ -14,10 +13,10 @@ import android.support.v4.app.FragmentActivity;
  */
 public class MainPresenter {
     //private Activity currentActivity;
-    private FragmentActivity currentActivity;
-    private LocationAccesser locationAccesser;
-    private LoadingPanelViewer loadingPanelViewer;
-    private NetworkAccesser networkAccesser;
+    private final FragmentActivity currentActivity;
+    private final LocationAccesser locationAccesser;
+    private final LoadingPanelViewer loadingPanelViewer;
+    private final NetworkAccesser networkAccesser;
     private ToiletDataLoader dataLoader;
 
     public MainPresenter(FragmentActivity newActivity){
@@ -82,10 +81,15 @@ public class MainPresenter {
                 });
 
     }
-    public void addMarker(String strToiletName, double dblLatitude, double dblLongitude){
+    public void addMarker(String strToiletName, double dblLatitude, double dblLongitude, String strAddress, String strAvailableTime){
         currentActivity.runOnUiThread(
                 () -> {
-                    locationAccesser.addMarker(strToiletName, dblLatitude, dblLongitude);
+                    StringBuilder _newSnippet = new StringBuilder(currentActivity.getString(R.string.marker_address));
+                    _newSnippet.append(strAddress);
+                    _newSnippet.append(currentActivity.getString(R.string.marker_availabletime));
+                    _newSnippet.append(strAvailableTime);
+
+                    locationAccesser.addMarker(strToiletName, dblLatitude, dblLongitude, _newSnippet.toString());
                 });
     }
     public boolean checkIsNetworkConnected(){

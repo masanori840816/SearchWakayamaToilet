@@ -40,31 +40,22 @@ public class LocationAccesser  implements
         GoogleApiClient.OnConnectionFailedListener{
 
     private GoogleMap map;
-    private LocationManager mLocationManager;
+    private final LocationManager locationManager;
     private GoogleApiClient apiClient;
-    private LocationAccesser locationAccesser;
+    private final LocationAccesser locationAccesser;
 
 
-    private DatabaseAccesser mDbAccesser;
-    private SQLiteDatabase mSqliteDb;
+    private final DatabaseAccesser dbAccesser;
+    private final SQLiteDatabase sqlite;
 
-    private HandlerThread mHandlerThread;
-    private boolean mIsDataLoading;
+    private final Activity currentActivity;
 
-    private Activity currentActivity;
-
-
-    public LocationAccesser(final LocationManager locationManager, Activity newActivity){
+    public LocationAccesser(final LocationManager newLocationManager, Activity newActivity){
         locationAccesser = this;
-        mLocationManager = locationManager;
+        locationManager = newLocationManager;
 
-        mDbAccesser = new DatabaseAccesser(newActivity);
-        mSqliteDb = mDbAccesser.getWritableDatabase();
-
-        mIsDataLoading = false;
-
-        mHandlerThread = new HandlerThread("AddMarker");
-
+        dbAccesser = new DatabaseAccesser(newActivity);
+        sqlite = dbAccesser.getWritableDatabase();
         currentActivity = newActivity;
     }
     public void getGoogleMap(final FragmentActivity fragmentActivity, MainPresenter presenter){
@@ -79,6 +70,7 @@ public class LocationAccesser  implements
                         gMap -> {
                             map = gMap;
                             map.setMyLocationEnabled(true);
+                            map.setInfoWindowAdapter(new ToiletInfoWindowViewer(fragmentActivity));
                             // 和歌山県庁に移動.
                             map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(34.22501, 135.1678), 9));
                             // GoogleMap.OnMyLocationButtonClickListener - onMyLocationButtonClick().
@@ -114,8 +106,8 @@ public class LocationAccesser  implements
         Handler handler = new Handler(handlerThread.getLooper());
         // Runnable() - run().
         handler.post(() -> {
-            mDbAccesser.setSearchCriteriaFromFreeWord(strWord);
-            ArrayList<DatabaseAccesser.ToiletInfoModel> aryToiletInfo = mDbAccesser.search(mSqliteDb);
+            dbAccesser.setSearchCriteriaFromFreeWord(strWord);
+            ArrayList<DatabaseAccesser.ToiletInfoModel> aryToiletInfo = dbAccesser.search(sqlite);
 
             if (aryToiletInfo != null) {
                 for (DatabaseAccesser.ToiletInfoModel toiletInfo : aryToiletInfo) {
@@ -123,7 +115,7 @@ public class LocationAccesser  implements
                     // Runnable() - run().
                     activity.runOnUiThread(
                             () -> {
-                                this.addMarker(toiletInfo.toiletName, toiletInfo.latitude, toiletInfo.longitude);
+                                this.addMarker(toiletInfo.toiletName, toiletInfo.latitude, toiletInfo.longitude, toiletInfo.availableTime);
                             });
                 }
             }
@@ -138,7 +130,7 @@ public class LocationAccesser  implements
                 Criteria criteria = new Criteria();
                 criteria.setAccuracy(Criteria.ACCURACY_COARSE);
                 // 位置情報が取得できるプロバイダから現在位置の取得.
-                currentLocation = mLocationManager.getLastKnownLocation(mLocationManager.getBestProvider(criteria, true));
+                currentLocation = locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, true));
             }
             if(currentLocation == null) {
                 // if can't get location, show Toast.
@@ -148,14 +140,17 @@ public class LocationAccesser  implements
                 map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), 13));
             }
         }catch(SecurityException ex){
+            // TODO: error handling.
             Log.d("SWT Error", ex.getLocalizedMessage());
         }
     }
-    public void addMarker(String strToiletName, double dblLatitude, double dblLongitude){
+    public void addMarker(String strToiletName, double dblLatitude, double dblLongitude, String strSnippet){
         if (map != null) {
             // 表示したマップにマーカーを追加する.
             map.addMarker(new MarkerOptions().position(
-                    new LatLng(dblLatitude, dblLongitude)).title(strToiletName));
+                    new LatLng(dblLatitude, dblLongitude))
+                    .title(strToiletName)
+                    .snippet(strSnippet));
         }
     }
     private void moveToMyLocation(final FragmentActivity activity){

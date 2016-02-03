@@ -63,7 +63,7 @@ public class ToiletDataLoader extends AsyncTask<Void, Void, Integer> {
                     break;
                 }
                 // Add marker on UI Thread.
-                currentPresenter.addMarker(toiletInfo.toiletName, toiletInfo.latitude, toiletInfo.longitude);
+                currentPresenter.addMarker(toiletInfo.toiletName, toiletInfo.latitude, toiletInfo.longitude, toiletInfo.address, toiletInfo.availableTime);
             }
         } else if (currentPresenter.checkIsNetworkConnected()) {
             // Runnable() - run().
@@ -116,7 +116,7 @@ public class ToiletDataLoader extends AsyncTask<Void, Void, Integer> {
                                 toiletInfoModel.nearbySightseeing = strNearbySightseeing;
 
                                 // Add marker on UI Thread.
-                                currentPresenter.addMarker(toiletInfoModel.toiletName, toiletInfoModel.latitude, toiletInfoModel.longitude);
+                                currentPresenter.addMarker(toiletInfoModel.toiletName, toiletInfoModel.latitude, toiletInfoModel.longitude, toiletInfoModel.address, toiletInfoModel.availableTime);
 
                                 final String toiletName = strSplited[1];
                                 final String toiletAddress = strSplited[3];
