@@ -4,14 +4,18 @@
  */
 package jp.searchwakayamatoilet;
 
+import android.app.FragmentManager;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.MenuItemCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 
-import android.support.v4.app.FragmentActivity;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -20,7 +24,7 @@ import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class MainActivity extends FragmentActivity{
+public class MainActivity extends AppCompatActivity implements AboutAppFragment.OnFragmentInteractionListener{
 
     private MainActivity mainActivity;
 
@@ -32,6 +36,8 @@ public class MainActivity extends FragmentActivity{
     private ArrayList<String> suggestItemSearchAll;
     private ArrayList<String> suggestItems;
     private ArrayAdapter<String> suggestListAdapter;
+
+    private AboutAppFragment aboutAppFragment;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -106,11 +112,22 @@ public class MainActivity extends FragmentActivity{
         suggestList.setVisibility(View.INVISIBLE);
 
         // MenuItem.OnMenuItemClickListener() - onMenuItemClick(MenuItem item).
-        _toolbar.getMenu().findItem(R.id.updatebutton).setOnMenuItemClickListener(
+        _toolbar.getMenu().findItem(R.id.update_button).setOnMenuItemClickListener(
                 item -> {
+                    Log.d("SWT", "id " + item.getItemId());
                     // reload toilet datas from csv.
                     presenter.loadCsvData(false);
                     return false;
+                });
+        _toolbar.getMenu().findItem(R.id.show_about_button).setOnMenuItemClickListener(
+                item -> {
+                    // aboutページの表示.
+                    aboutAppFragment = new AboutAppFragment();
+                    FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                    transaction.replace(R.id.main_container, aboutAppFragment);
+                    transaction.addToBackStack(null);
+                    transaction.commit();
+                    return true;
                 });
         presenter.getMap();
     }
@@ -153,5 +170,18 @@ public class MainActivity extends FragmentActivity{
                         presenter.moveCurrentLocation();
                     });
         }
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()){
+            case android.R.id.home:
+                if(aboutAppFragment != null){
+                    FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                    transaction.remove(aboutAppFragment);
+                    transaction.commit();
+                    return true;
+                }
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

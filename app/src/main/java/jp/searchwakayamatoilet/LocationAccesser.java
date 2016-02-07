@@ -44,7 +44,6 @@ public class LocationAccesser  implements
     private GoogleApiClient apiClient;
     private final LocationAccesser locationAccesser;
 
-
     private final DatabaseAccesser dbAccesser;
     private final SQLiteDatabase sqlite;
 
@@ -109,7 +108,15 @@ public class LocationAccesser  implements
             dbAccesser.setSearchCriteriaFromFreeWord(strWord);
             ArrayList<DatabaseAccesser.ToiletInfoModel> aryToiletInfo = dbAccesser.search(sqlite);
 
-            if (aryToiletInfo != null) {
+            if (aryToiletInfo == null
+                    || aryToiletInfo.size() <= 0) {
+                // show toast on getting no results.
+                activity.runOnUiThread(
+                        () -> {
+                            Toast.makeText(currentActivity, R.string.toast_no_results, Toast.LENGTH_SHORT).show();
+                        });
+            }
+            else{
                 for (DatabaseAccesser.ToiletInfoModel toiletInfo : aryToiletInfo) {
                     // Add marker on UI Thread.
                     // Runnable() - run().
