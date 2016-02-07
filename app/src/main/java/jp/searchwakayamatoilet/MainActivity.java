@@ -4,9 +4,7 @@
  */
 package jp.searchwakayamatoilet;
 
-import android.app.FragmentManager;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.MenuItemCompat;
@@ -114,7 +112,6 @@ public class MainActivity extends AppCompatActivity implements AboutAppFragment.
         // MenuItem.OnMenuItemClickListener() - onMenuItemClick(MenuItem item).
         _toolbar.getMenu().findItem(R.id.update_button).setOnMenuItemClickListener(
                 item -> {
-                    Log.d("SWT", "id " + item.getItemId());
                     // reload toilet datas from csv.
                     presenter.loadCsvData(false);
                     return false;
