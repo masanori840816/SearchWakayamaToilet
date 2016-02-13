@@ -3,24 +3,8 @@ Searching public toilets in wakayama by [toilet-map.csv](https://github.com/waka
 
 ## How to use
 1. get Google Map API
-2. create or add following contents on strings.xml
-<pre>
-< resources>
-    < string name="app_name" >SearchWakayamaToilet< /string >
-    < string name="label_action" >< /string >
-    < string name="action_search" >Search< /string >
-    < string name="action_settings" >Settings< /string >
-    < string name="google_maps_key" >Set google Maps Key< /string >
-    < string name="toast_failed_getting_location" >位置情報の取得に失敗しました\nもう一度ボタンを押してください< /string >
-    < string name="toast_no_networks" >機能を使用するためにはネットワークを有効にしてください< /string >
-    < string name="request_enable_location" >2</string >
-    < string name="handler_get_csv" >0< /string >
-    < string name="handler_get_location" >1< /string >
-    < string name="searchview_queryhint" >名称や住所から検索< /string >
-< /resources >
-</pre>
-3. get toilet-map.csv and put it in app/src/main/assets
-4. get icons from "[Material icons - Google Design](https://design.google.com/icons/index.html)"
+2. change GoogleMaps key on strings.xml
+3. get icons from "[Material icons - Google Design](https://design.google.com/icons/index.html)"
     * cached
     * search
 

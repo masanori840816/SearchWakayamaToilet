@@ -29,6 +29,7 @@ import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -67,17 +68,22 @@ public class LocationAccesser  implements
                 .getMapAsync(
                         // OnMapReadyCallback - onMapReady(GoogleMap gMap).
                         gMap -> {
-                            map = gMap;
-                            map.setMyLocationEnabled(true);
-                            map.setInfoWindowAdapter(new ToiletInfoWindowViewer(fragmentActivity));
-                            // 和歌山県庁に移動.
-                            map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(34.22501, 135.1678), 9));
-                            // GoogleMap.OnMyLocationButtonClickListener - onMyLocationButtonClick().
-                            map.setOnMyLocationButtonClickListener(() -> {
-                                locationAccesser.moveToMyLocation(fragmentActivity);
-                                return false;
-                            });
-                            presenter.loadCsvData(true);
+                            try {
+                                map = gMap;
+                                map.setMyLocationEnabled(true);
+                                map.setInfoWindowAdapter(new ToiletInfoWindowViewer(fragmentActivity));
+                                // 和歌山県庁に移動.
+                                map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(34.22501, 135.1678), 9));
+                                // GoogleMap.OnMyLocationButtonClickListener - onMyLocationButtonClick().
+                                map.setOnMyLocationButtonClickListener(() -> {
+                                    locationAccesser.moveToMyLocation(fragmentActivity);
+                                    return false;
+                                });
+                                presenter.loadCsvData(true);
+                            } catch (SecurityException ex) {
+                                // TODO: error handling.
+                                Log.d("SWT Error", ex.getLocalizedMessage());
+                            }
                         });
     }
     public void clearMap(){
