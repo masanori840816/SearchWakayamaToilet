@@ -1,0 +1,34 @@
+<resources>
+    <string name="app_name">SWT</string>
+    <string name="label_action"></string>
+    <string name="action_search">Search</string>
+    <string name="action_update">Update</string>
+    <string name="action_about">About</string>
+    <string name="google_maps_key">AIzaSyAwgIAixgpTVKjzns16prj4BwcH1pinrO0</string>
+    <string name="toast_failed_getting_location">位置情報の取得に失敗しました\nもう一度ボタンを押してください</string>
+    <string name="toast_no_networks">機能を使用するためにはネットワークを有効にしてください</string>
+    <string name="request_enable_location">2</string>
+    <string name="request_permission">1</string>
+    <string name="searchview_queryhint">名称や住所から検索</string>
+    <string name="suggest_search_all">すべて表示</string>
+    <string name="marker_address">住所:</string>
+    <string name="marker_availabletime">\n利用可能時間:</string>
+    <string name="toast_no_results">情報が見つかりませんでした\n検索キーワードを変更するか\nデータを再読み込みしてください</string>
+    <string name="about_title">このアプリについて</string>
+    <string name="about_description">このアプリは和歌山県が公開しているtoilet-mapを元に作成したものです。\nソースコードはGithubにて公開しています。ご要望、プルリクなどいただければ善処いたします_(._.)_</string>
+    <string name="about_project_link">SearchWakayamaToilet - Github</string>
+    <string name="about_project_url">https://github.com/masanori840816/SearchWakayamaToilet</string>
+    <string name="about_credits_title">Credits</string>
+    <string name="about_credits_title_toiletmap">toilet-map</string>
+    <string name="about_credits_toiletmap">このアプリは和歌山県の公開するtoilet-mapのデータを使用しています。このデータはCreative Commons License 表示 2.1のもとでライセンスされています。</string>
+    <string name="about_credits_toiletmap_link">toilet-map - Github</string>
+    <string name="about_credits_toiletmap_url">https://github.com/wakayama-pref-org/toilet-map</string>
+    <string name="about_credits_title_retrolambda">Gradle Retrolambda Plugin</string>
+    <string name="about_credits_retrolambda">このアプリはGradle Retrolambda Pluginを使用しています。このLibraryはApache License ver.2.0でライセンスされています。</string>
+    <string name="about_credits_retrolambda_link">Retrolambda - Github</string>
+    <string name="about_credits_retrolambda_url">https://github.com/orfjackal/retrolambda</string>
+    <string name="about_credits_title_lightweight_stream_api">Lightweight-Stream-API</string>
+    <string name="about_credits_lightweight_stream_api">このアプリはLightweight-Stream-APIを使用しています。このLibraryはApache License ver.2.0でライセンスされています。</string>
+    <string name="about_credits_lightweight_stream_api_link">Lightweight-Stream-API - Github</string>
+    <string name="about_credits_lightweight_stream_api_url">https://github.com/aNNiMON/Lightweight-Stream-API</string>
+</resources>
