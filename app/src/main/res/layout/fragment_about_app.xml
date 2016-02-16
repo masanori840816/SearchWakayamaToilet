@@ -3,13 +3,17 @@
     android:id="@+id/about_fragment"
     android:background="@android:color/white"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
     tools:context="jp.searchwakayamatoilet.AboutAppFragment">
     <include layout="@layout/layout_toolbar" />
     <ScrollView
         android:id="@+id/ScrollView"
         android:layout_height="match_parent"
-        android:layout_width="match_parent">
+        android:layout_width="match_parent"
+        android:fadingEdge="vertical"
+        android:requiresFadingEdge="vertical"
+        android:fadingEdgeLength="200dp"
+        android:background="@android:color/white">
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

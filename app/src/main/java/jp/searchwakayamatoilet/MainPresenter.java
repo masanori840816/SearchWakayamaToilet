@@ -71,13 +71,20 @@ public class MainPresenter {
                 });
     }
     public void stopLoadingCsvData(){
+        if(currentActivity == null){
+            return;
+        }
         // Runnable() - run().
         currentActivity.runOnUiThread(
                 () -> {
                     // hide loading dialog.
-                    loadingPanelViewer.hide();
-                    dataLoader.stopLoading();
-                    dataLoader.cancel(true);
+                    if(loadingPanelViewer != null){
+                        loadingPanelViewer.hide();
+                    }
+                    if(dataLoader != null){
+                        dataLoader.stopLoading();
+                        dataLoader.cancel(true);
+                    }
                 });
 
     }

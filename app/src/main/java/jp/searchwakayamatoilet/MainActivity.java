@@ -154,7 +154,9 @@ public class MainActivity extends AppCompatActivity implements AboutAppFragment.
     @Override
     public void onPause(){
         // if toilet datas are loading from csv, stop loading.
-        presenter.stopLoadingCsvData();
+        if(presenter != null) {
+            presenter.stopLoadingCsvData();
+        }
         super.onPause();
     }
     public class TimerController extends TimerTask{

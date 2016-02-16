@@ -21,7 +21,7 @@
         android:layout_marginRight="10dp"
         android:layout_marginBottom="0dp"
         android:padding="10dp"
-        android:text="@string/about_credits_retrolambda" />
+        android:text="@string/about_credits_retrolambda"/>
     <TextView
         android:background="#E5F3FF"
         android:id="@+id/about_credits_retrolambda_link"
