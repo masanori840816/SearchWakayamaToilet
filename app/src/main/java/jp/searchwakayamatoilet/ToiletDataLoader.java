@@ -1,24 +1,20 @@
 package jp.searchwakayamatoilet;
 
-        import android.app.Activity;
-        import android.content.res.AssetManager;
-        import android.database.sqlite.SQLiteDatabase;
-        import android.database.sqlite.SQLiteException;
-        import android.location.Address;
-        import android.location.Geocoder;
-        import android.os.AsyncTask;
-        import android.util.Log;
+import android.app.Activity;
+import android.content.res.AssetManager;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
+import android.os.AsyncTask;
+import android.util.Log;
 
-        import com.annimon.stream.Stream;
+import com.annimon.stream.Stream;
 
-        import java.io.BufferedReader;
-        import java.io.IOException;
-        import java.io.InputStream;
-        import java.io.InputStreamReader;
-        import java.util.ArrayList;
-        import java.util.List;
-        import java.util.Locale;
-        import java.util.regex.Pattern;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.regex.Pattern;
 
 /**
  * Created by masanori on 2016/01/24.
@@ -33,7 +29,6 @@ public class ToiletDataLoader extends AsyncTask<Void, Void, Integer> {
     private MainPresenter currentPresenter;
     private boolean isLoadingCancelled;
 
-    private DatabaseAccesser.ToiletInfoModel toiletInfoModel;
 
     public void init(Activity newActivity, boolean newIsExistingDataUsed, MainPresenter newPresenter){
         currentPresenter = newPresenter;
@@ -42,7 +37,6 @@ public class ToiletDataLoader extends AsyncTask<Void, Void, Integer> {
 
         dbAccesser = new DatabaseAccesser(newActivity);
         sqlite = dbAccesser.getWritableDatabase();
-        toiletInfoModel = dbAccesser.new ToiletInfoModel();
         isLoadingCancelled = false;
     }
     public void stopLoading(){
@@ -58,30 +52,25 @@ public class ToiletDataLoader extends AsyncTask<Void, Void, Integer> {
         if (isExistingDataUsed
                 && aryToiletInfo != null
                 && aryToiletInfo.size() > 0) {
-            for (DatabaseAccesser.ToiletInfoModel toiletInfo : aryToiletInfo) {
-                if(isLoadingCancelled){
-                    break;
-                }
-                // Add marker on UI Thread.
-                currentPresenter.addMarker(toiletInfo.toiletName, toiletInfo.latitude, toiletInfo.longitude, toiletInfo.address, toiletInfo.availableTime);
-            }
-        } else if (currentPresenter.checkIsNetworkConnected()) {
+            // Add marker on UI Thread.
+            currentPresenter.addMarker(aryToiletInfo);
+        } else {
             // Runnable() - run().
             currentPresenter.startLoadingCsvData();
 
-            Geocoder geocoder = new Geocoder(currentActivity, Locale.getDefault());
             AssetManager asmAsset = currentActivity.getResources().getAssets();
             try {
                 // CSVの読み込み.
-                InputStream ipsInput = asmAsset.open("toilet-map.csv");
+                InputStream ipsInput = asmAsset.open("toilet-map-edited.csv");
                 InputStreamReader inputStreamReader = new InputStreamReader(ipsInput);
                 BufferedReader bufferReader = new BufferedReader(inputStreamReader);
                 String strLine = "";
                 String[] strSplited;
-                Pattern p = Pattern.compile("^[0-9]+");
+                Pattern patternNum = Pattern.compile("^[0-9]+");
 
+                ArrayList<DatabaseAccesser.ToiletInfoModel> aryLoadedToiletInfo = new ArrayList<>();
                 // 1行ずつ読み込む.
-                while (bufferReader.readLine() != null) {
+                while (true) {
                     if(isLoadingCancelled){
                         if(isTransactionStarted) {
                             // CommitしてTransactionを終了.
@@ -92,50 +81,54 @@ public class ToiletDataLoader extends AsyncTask<Void, Void, Integer> {
                     }
 
                     strLine = bufferReader.readLine();
+                    if(strLine == null){
+                        // stop loading if the line is empty.
+                        break;
+                    }
 
-                    // とりあえず数値から始まっている行のみ
-                    if (p.matcher(strLine).find()) {
-                        // とりあえずSplit後に4件以上データがある行のみ.
-                        strSplited = strLine.split(",");
-                        if (strSplited.length >= 4) {
+                    // if the line isn't start with number, skip loading.
+                    if (! patternNum.matcher(strLine).find()) {
+                        continue;
+                    }
+                    // Split後に9件データがある行のみ.
+                    strSplited = strLine.split(",");
 
-                            List addressList = geocoder.getFromLocationName(strSplited[3], 1);
-                            if (!addressList.isEmpty()) {
+                    if (strSplited.length >= 9) {
+                        // 0:No, 1:名称, 2:名称(英語), 3:名称(中国語), 4:市町村名, 5:住所, 6:住所(英語), 7:住所(中国語)
+                        // ,8: 緯度, 9:経度, 10:利用時間.
+                        DatabaseAccesser.ToiletInfoModel _toiletInfoModel = dbAccesser.new ToiletInfoModel();
+                        _toiletInfoModel.toiletName = strSplited[1];
+                        _toiletInfoModel.toiletEnglishName = strSplited[2];
+                        _toiletInfoModel.toiletChineseName = strSplited[3];
+                        // 都道府県は和歌山固定.
+                        _toiletInfoModel.district = "和歌山";
+                        _toiletInfoModel.municipality = strSplited[4];
+                        _toiletInfoModel.address = strSplited[5];
+                        _toiletInfoModel.englishAddress = strSplited[6];
+                        _toiletInfoModel.chineseAddress = strSplited[7];
+                        _toiletInfoModel.latitude = tryParseToDouble(strSplited[8]);
+                        _toiletInfoModel.longitude = tryParseToDouble(strSplited[9]);
+                        _toiletInfoModel.availableTime = strSplited[10];
 
-                                Address address = (Address) addressList.get(0);
+                        aryLoadedToiletInfo.add(_toiletInfoModel);
 
-                                toiletInfoModel.toiletName = strSplited[1];
-                                // 都道府県はひとまず和歌山固定.
-                                toiletInfoModel.district = "和歌山";
-                                toiletInfoModel.municipality = strSplited[2];
-                                toiletInfoModel.address = strSplited[3];
-                                toiletInfoModel.latitude = address.getLatitude();
-                                toiletInfoModel.longitude = address.getLongitude();
-                                toiletInfoModel.availableTime = strSplited[4];
-                                String strNearbySightseeing = (strSplited.length > 35) ? strSplited[35] : "";
-                                toiletInfoModel.nearbySightseeing = strNearbySightseeing;
+                        final String _toiletName = _toiletInfoModel.toiletName;
+                        final String _toiletAddress = _toiletInfoModel.address;
+                        long lngCount = Stream.of(aryToiletInfo)
+                                .filter(toiletInfo -> (toiletInfo.toiletName.equals(_toiletName)
+                                        && toiletInfo.address.equals(_toiletAddress))).count();
 
-                                // Add marker on UI Thread.
-                                currentPresenter.addMarker(toiletInfoModel.toiletName, toiletInfoModel.latitude, toiletInfoModel.longitude, toiletInfoModel.address, toiletInfoModel.availableTime);
-
-                                final String toiletName = strSplited[1];
-                                final String toiletAddress = strSplited[3];
-                                long lngCount = Stream.of(aryToiletInfo)
-                                        .filter(toiletInfo -> (toiletInfo.toiletName.equals(toiletName)
-                                                && toiletInfo.address.equals(toiletAddress))).count();
-
-                                if (lngCount <= 0) {
-                                    if(isTransactionStarted){
-                                        // Transactionの開始.
-                                        sqlite.beginTransaction();
-                                        isTransactionStarted = true;
-                                    }
-
-                                    // if there is no same data, insert as new one.
-                                    dbAccesser.insertInfo(sqlite, toiletInfoModel);
-                                }
+                        if (lngCount <= 0) {
+                            if (isTransactionStarted) {
+                                // Transactionの開始.
+                                sqlite.beginTransaction();
+                                isTransactionStarted = true;
                             }
+
+                            // if there is no same data, insert as new one.
+                            dbAccesser.insertInfo(sqlite, _toiletInfoModel);
                         }
+                        _toiletInfoModel = null;
                     }
                 }
                 if(isTransactionStarted) {
@@ -146,6 +139,9 @@ public class ToiletDataLoader extends AsyncTask<Void, Void, Integer> {
 
                 bufferReader.close();
                 ipsInput.close();
+
+                // Add marker on UI Thread.
+                currentPresenter.addMarker(aryLoadedToiletInfo);
 
                 currentPresenter.stopLoadingCsvData();
 
@@ -159,9 +155,16 @@ public class ToiletDataLoader extends AsyncTask<Void, Void, Integer> {
         }
         return 0;
     }
+    private double tryParseToDouble(String numberString){
+        try{
+            double numberDouble = Double.parseDouble(numberString);
+            return numberDouble;
+        }catch(NumberFormatException e){
+            return 0;
+        }
+    }
     @Override
     protected void onPostExecute(Integer result) {
-        Log.d("SWT", "postExecute");
     }
     @Override
     protected void onCancelled(){

@@ -7,6 +7,9 @@ import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.os.Build;
 import android.support.v4.app.FragmentActivity;
+import android.widget.Toast;
+
+import java.util.ArrayList;
 
 /**
  * Created by masanori on 2016/01/24.
@@ -16,8 +19,9 @@ public class MainPresenter {
     private final FragmentActivity currentActivity;
     private final LocationAccesser locationAccesser;
     private final LoadingPanelViewer loadingPanelViewer;
-    private final NetworkAccesser networkAccesser;
     private ToiletDataLoader dataLoader;
+    private ToiletDataSearcher dataSearcher;
+    private boolean isLoadingCanceled;
 
     public MainPresenter(FragmentActivity newActivity){
         currentActivity = newActivity;
@@ -25,7 +29,6 @@ public class MainPresenter {
                 (LocationManager) newActivity.getSystemService(Context.LOCATION_SERVICE)
                 , newActivity);
         loadingPanelViewer = new LoadingPanelViewer(newActivity, this);
-        networkAccesser = new NetworkAccesser();
     }
     public void getMap(){
         // Android6.0以降なら権限確認.
@@ -52,13 +55,17 @@ public class MainPresenter {
         }
     }
     public void loadCsvData(boolean isExistingDataUsed){
+        isLoadingCanceled = false;
         locationAccesser.clearMap();
         dataLoader = new ToiletDataLoader();
         dataLoader.init(currentActivity, isExistingDataUsed, this);
         dataLoader.execute();
     }
-    public void setMarkersByFreeWord(String searchWord) {
-        locationAccesser.setMarkersByFreeWord(currentActivity, searchWord);
+    public void setMarkersByFreeWord(String searchQuery) {
+        isLoadingCanceled = false;
+        locationAccesser.clearMap();
+        dataSearcher = new ToiletDataSearcher(currentActivity, this, searchQuery);
+        dataSearcher.execute();
     }
     public void moveCurrentLocation(){
         locationAccesser.moveCurrentLocation();
@@ -77,6 +84,7 @@ public class MainPresenter {
         // Runnable() - run().
         currentActivity.runOnUiThread(
                 () -> {
+                    isLoadingCanceled = true;
                     // hide loading dialog.
                     if(loadingPanelViewer != null){
                         loadingPanelViewer.hide();
@@ -88,18 +96,27 @@ public class MainPresenter {
                 });
 
     }
-    public void addMarker(String strToiletName, double dblLatitude, double dblLongitude, String strAddress, String strAvailableTime){
+    public void addMarker(ArrayList<DatabaseAccesser.ToiletInfoModel> toiletInfoModelList){
         currentActivity.runOnUiThread(
                 () -> {
-                    StringBuilder _newSnippet = new StringBuilder(currentActivity.getString(R.string.marker_address));
-                    _newSnippet.append(strAddress);
-                    _newSnippet.append(currentActivity.getString(R.string.marker_availabletime));
-                    _newSnippet.append(strAvailableTime);
+                    for (DatabaseAccesser.ToiletInfoModel toiletInfo : toiletInfoModelList) {
+                        if(isLoadingCanceled){
+                            break;
+                        }
+                        StringBuilder _newSnippet = new StringBuilder(currentActivity.getString(R.string.marker_address));
+                        _newSnippet.append(toiletInfo.address);
+                        _newSnippet.append(currentActivity.getString(R.string.marker_availabletime));
+                        _newSnippet.append(toiletInfo.availableTime);
 
-                    locationAccesser.addMarker(strToiletName, dblLatitude, dblLongitude, _newSnippet.toString());
+                        locationAccesser.addMarker(toiletInfo.toiletName, toiletInfo.latitude, toiletInfo.longitude, _newSnippet.toString());
+                    }
                 });
     }
-    public boolean checkIsNetworkConnected(){
-        return networkAccesser.checkIsNetworkConnected(currentActivity);
+    public void showToast(int messageNum){
+        // Runnable() - run().
+        currentActivity.runOnUiThread(
+                () -> {
+                    Toast.makeText(currentActivity, messageNum, Toast.LENGTH_SHORT).show();
+                });
     }
 }

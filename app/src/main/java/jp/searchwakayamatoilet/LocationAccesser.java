@@ -12,8 +12,6 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.HandlerThread;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.widget.Toast;
@@ -29,12 +27,9 @@ import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
-
-import java.util.ArrayList;
 
 public class LocationAccesser  implements
         GoogleApiClient.ConnectionCallbacks,
@@ -91,48 +86,12 @@ public class LocationAccesser  implements
     }
     @Override
     public void onConnectionFailed(ConnectionResult result) {
-        Log.d("SWT", "Failed");
     }
     @Override
     public void onConnectionSuspended(int cause) {
-        Log.d("SWT", "Suspended");
     }
     @Override
     public void onConnected(Bundle bundle){
-        Log.d("SWT", "Connected");
-    }
-
-    public void setMarkersByFreeWord(final Activity activity, final String strWord){
-        map.clear();
-
-        HandlerThread handlerThread = new HandlerThread("AddMarker");
-        handlerThread.start();
-
-        Handler handler = new Handler(handlerThread.getLooper());
-        // Runnable() - run().
-        handler.post(() -> {
-            dbAccesser.setSearchCriteriaFromFreeWord(strWord);
-            ArrayList<DatabaseAccesser.ToiletInfoModel> aryToiletInfo = dbAccesser.search(sqlite);
-
-            if (aryToiletInfo == null
-                    || aryToiletInfo.size() <= 0) {
-                // show toast on getting no results.
-                activity.runOnUiThread(
-                        () -> {
-                            Toast.makeText(currentActivity, R.string.toast_no_results, Toast.LENGTH_SHORT).show();
-                        });
-            }
-            else{
-                for (DatabaseAccesser.ToiletInfoModel toiletInfo : aryToiletInfo) {
-                    // Add marker on UI Thread.
-                    // Runnable() - run().
-                    activity.runOnUiThread(
-                            () -> {
-                                this.addMarker(toiletInfo.toiletName, toiletInfo.latitude, toiletInfo.longitude, toiletInfo.availableTime);
-                            });
-                }
-            }
-        });
     }
     public void moveCurrentLocation(){
         try {
