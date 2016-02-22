@@ -30,7 +30,7 @@ public class ToiletDataLoader extends AsyncTask<Void, Void, Integer> {
     private boolean isLoadingCancelled;
 
 
-    public void init(Activity newActivity, boolean newIsExistingDataUsed, MainPresenter newPresenter){
+    public ToiletDataLoader(Activity newActivity, boolean newIsExistingDataUsed, MainPresenter newPresenter){
         currentPresenter = newPresenter;
         currentActivity = newActivity;
         isExistingDataUsed = newIsExistingDataUsed;

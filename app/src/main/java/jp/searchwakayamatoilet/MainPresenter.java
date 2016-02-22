@@ -57,8 +57,7 @@ public class MainPresenter {
     public void loadCsvData(boolean isExistingDataUsed){
         isLoadingCanceled = false;
         locationAccesser.clearMap();
-        dataLoader = new ToiletDataLoader();
-        dataLoader.init(currentActivity, isExistingDataUsed, this);
+        dataLoader = new ToiletDataLoader(currentActivity, isExistingDataUsed, this);
         dataLoader.execute();
     }
     public void setMarkersByFreeWord(String searchQuery) {

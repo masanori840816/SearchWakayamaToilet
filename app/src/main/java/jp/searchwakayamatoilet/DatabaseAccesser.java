@@ -28,6 +28,7 @@ public class DatabaseAccesser extends SQLiteOpenHelper{
         public double latitude;
         public double longitude;
         public String availableTime;
+        public boolean hasMultiPurposeToilet;
     }
     private String strSearchCriteria;
     private String[] strSearchParameters;
