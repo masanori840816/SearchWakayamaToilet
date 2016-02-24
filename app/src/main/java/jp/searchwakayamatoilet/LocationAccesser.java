@@ -71,13 +71,12 @@ public class LocationAccesser  implements
                                 map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(34.22501, 135.1678), 9));
                                 // GoogleMap.OnMyLocationButtonClickListener - onMyLocationButtonClick().
                                 map.setOnMyLocationButtonClickListener(() -> {
-                                    locationAccesser.moveToMyLocation(fragmentActivity);
+                                    locationAccesser.moveToMyLocation(fragmentActivity, presenter);
                                     return false;
                                 });
                                 presenter.loadCsvData(true);
                             } catch (SecurityException ex) {
-                                // TODO: error handling.
-                                Log.d("SWT Error", ex.getLocalizedMessage());
+                                presenter.showErrorDialog(ex.getLocalizedMessage());
                             }
                         });
     }
@@ -93,7 +92,7 @@ public class LocationAccesser  implements
     @Override
     public void onConnected(Bundle bundle){
     }
-    public void moveCurrentLocation(){
+    public void moveCurrentLocation(MainPresenter presenter){
         try {
             // 現在位置を中央に表示.
             Location currentLocation = map.getMyLocation();
@@ -112,8 +111,7 @@ public class LocationAccesser  implements
                 map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), 13));
             }
         }catch(SecurityException ex){
-            // TODO: error handling.
-            Log.d("SWT Error", ex.getLocalizedMessage());
+            presenter.showErrorDialog(ex.getLocalizedMessage());
         }
     }
     public void addMarker(String strToiletName, double dblLatitude, double dblLongitude, String strSnippet){
@@ -125,7 +123,7 @@ public class LocationAccesser  implements
                     .snippet(strSnippet));
         }
     }
-    private void moveToMyLocation(final FragmentActivity activity){
+    private void moveToMyLocation(final FragmentActivity activity, MainPresenter presenter){
         LocationRequest locationRequest = LocationRequest.create();
         locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
         locationRequest.setInterval(3000L);
@@ -159,8 +157,8 @@ public class LocationAccesser  implements
                                 // GPSがOffならIntent表示. onActivityResultで結果取得.
                                 status.startResolutionForResult(
                                         activity, R.string.request_enable_location);
-                            } catch (IntentSender.SendIntentException e) {
-                                // TODO; 例外処理.
+                            } catch (IntentSender.SendIntentException ex) {
+                                presenter.showErrorDialog(ex.getLocalizedMessage());
                             }
                             break;
                         case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:

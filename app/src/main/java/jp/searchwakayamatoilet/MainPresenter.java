@@ -2,7 +2,9 @@ package jp.searchwakayamatoilet;
 
 import android.Manifest;
 import android.annotation.TargetApi;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.os.Build;
@@ -67,7 +69,7 @@ public class MainPresenter {
         dataSearcher.execute();
     }
     public void moveCurrentLocation(){
-        locationAccesser.moveCurrentLocation();
+        locationAccesser.moveCurrentLocation(this);
     }
     public void startLoadingCsvData(){
         currentActivity.runOnUiThread(
@@ -116,6 +118,18 @@ public class MainPresenter {
         currentActivity.runOnUiThread(
                 () -> {
                     Toast.makeText(currentActivity, messageNum, Toast.LENGTH_SHORT).show();
+                });
+    }
+    public void showErrorDialog(String errorMessage){
+        // Runnable() - run().
+        currentActivity.runOnUiThread(
+                () -> {
+                    AlertDialog.Builder alert = new AlertDialog.Builder(currentActivity);
+                    alert.setTitle(currentActivity.getString(R.string.error_title));
+                    alert.setMessage(currentActivity.getString(R.string.error_dialog) + errorMessage);
+                    // DialogInterface.OnClickListener() - onClick(DialogInterface dialog, int which).
+                    alert.setPositiveButton(currentActivity.getString(android.R.string.ok), null);
+                    alert.show();
                 });
     }
 }

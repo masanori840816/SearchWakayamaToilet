@@ -34,7 +34,7 @@ public class DatabaseAccesser extends SQLiteOpenHelper{
     private String[] strSearchParameters;
 
     public DatabaseAccesser(Context context){
-        super(context, "toiletinfo.db", null, 1);
+        super(context, "toiletinfo.db", null, 2);
     }
     public void insertInfo(SQLiteDatabase db, ToiletInfoModel toiletInfo){
 
@@ -52,6 +52,7 @@ public class DatabaseAccesser extends SQLiteOpenHelper{
         contentValues.put("latitude", toiletInfo.latitude);
         contentValues.put("longitude", toiletInfo.longitude);
         contentValues.put("availabletime", toiletInfo.availableTime);
+        contentValues.put("hasMultiPurposeToilet", toiletInfo.hasMultiPurposeToilet);
         contentValues.put("lastupdatedate", java.lang.System.currentTimeMillis());
         db.insert("toiletinfo", null, contentValues);
     }
@@ -100,6 +101,7 @@ public class DatabaseAccesser extends SQLiteOpenHelper{
             toiletInfoModel.latitude = _cursor.getDouble(_cursor.getColumnIndex("latitude"));
             toiletInfoModel.longitude = _cursor.getDouble(_cursor.getColumnIndex("longitude"));
             toiletInfoModel.availableTime = _cursor.getString(_cursor.getColumnIndex("availabletime"));
+            toiletInfoModel.hasMultiPurposeToilet = (_cursor.getInt(_cursor.getColumnIndex("hasMultiPurposeToilet")) == 1);
 
             aryToiletInfo.add(toiletInfoModel);
             _cursor.moveToNext();
@@ -125,6 +127,7 @@ public class DatabaseAccesser extends SQLiteOpenHelper{
                         + "latitude REAL NOT NULL, "
                         + "longitude REAL NOT NULL, "
                         + "availabletime TEXT, "
+                        + "hasMultiPurposeToilet NUMERIC, "
                         + "lastupdatedate INTEGER)"
         );
     }

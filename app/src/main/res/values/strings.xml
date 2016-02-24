@@ -31,4 +31,6 @@
     <string name="about_credits_lightweight_stream_api">このアプリはLightweight-Stream-APIを使用しています。このLibraryはApache License ver.2.0でライセンスされています。</string>
     <string name="about_credits_lightweight_stream_api_link">Lightweight-Stream-API - Github</string>
     <string name="about_credits_lightweight_stream_api_url">https://github.com/aNNiMON/Lightweight-Stream-API</string>
+    <string name="error_title">問題が発生しました</string>
+    <string name="error_dialog">アプリの実行中に問題が発生しました。以下の内容を開発者にご連絡ください。:\n</string>
 </resources>

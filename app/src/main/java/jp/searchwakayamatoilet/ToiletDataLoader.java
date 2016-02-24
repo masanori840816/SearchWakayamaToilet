@@ -145,12 +145,10 @@ public class ToiletDataLoader extends AsyncTask<Void, Void, Integer> {
 
                 currentPresenter.stopLoadingCsvData();
 
-            } catch (IOException e) {
-                // TODO: error処理.
-                Log.d("SWT", "Exception:" + e.getLocalizedMessage());
-            } catch (SQLiteException e) {
-                // TODO: error処理.
-                Log.d("SWT", "Exception:" + e.getLocalizedMessage());
+            } catch (IOException ex) {
+                currentPresenter.showErrorDialog(ex.getLocalizedMessage());
+            } catch (SQLiteException ex) {
+                currentPresenter.showErrorDialog(ex.getLocalizedMessage());
             }
         }
         return 0;
