@@ -19,15 +19,9 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import java.util.ArrayList;
-import java.util.Timer;
-import java.util.TimerTask;
+
 
 public class MainActivity extends AppCompatActivity implements AboutAppFragment.OnFragmentInteractionListener{
-
-    private MainActivity mainActivity;
-
-    private TimerController timeController;
-    private Timer tmrGettingLocationTimer;
 
     private MainPresenter presenter;
     private ListView suggestList;
@@ -35,7 +29,7 @@ public class MainActivity extends AppCompatActivity implements AboutAppFragment.
     private ArrayList<String> suggestItems;
     private ArrayAdapter<String> suggestListAdapter;
 
-    private AboutAppFragment aboutAppFragment;
+    private final static AboutAppFragment aboutAppFragment = new AboutAppFragment();
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -44,16 +38,13 @@ public class MainActivity extends AppCompatActivity implements AboutAppFragment.
 
         presenter = new MainPresenter(this);
 
-        mainActivity = this;
-
-        timeController = new TimerController();
-
         Toolbar _toolbar = (Toolbar) findViewById(R.id.toolbar);
         _toolbar.inflateMenu(R.menu.menu_main);
 
         SearchView _searchView = (SearchView) MenuItemCompat.getActionView(_toolbar.getMenu().findItem(R.id.searchview));
         // hide Submit button.
         _searchView.setSubmitButtonEnabled(false);
+
 
         _searchView.setQueryHint(getString(R.string.searchview_queryhint));
 
@@ -77,7 +68,9 @@ public class MainActivity extends AppCompatActivity implements AboutAppFragment.
             public boolean onQueryTextChange(String newText) {
                 // if the textarea empty, show suggest items.
                 if (newText.equals("")) {
-                    suggestList.setVisibility(View.VISIBLE);
+                    if(_searchView.isShown()){
+                        suggestList.setVisibility(View.VISIBLE);
+                    }
                 } else {
                     suggestList.setVisibility(View.INVISIBLE);
                 }
@@ -119,7 +112,6 @@ public class MainActivity extends AppCompatActivity implements AboutAppFragment.
         _toolbar.getMenu().findItem(R.id.show_about_button).setOnMenuItemClickListener(
                 item -> {
                     // aboutページの表示.
-                    aboutAppFragment = new AboutAppFragment();
                     FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
                     transaction.replace(R.id.main_container, aboutAppFragment);
                     transaction.addToBackStack(null);
@@ -143,9 +135,8 @@ public class MainActivity extends AppCompatActivity implements AboutAppFragment.
         switch (requestCode){
             case R.string.request_enable_location:
                 if(resultCode == RESULT_OK){
-                    // GPSをONにした直後は値が取れない場合があるのでTimerで1秒待つ.
-                    tmrGettingLocationTimer = new Timer();
-                    tmrGettingLocationTimer.schedule(timeController, 1000L);
+                    // get location data.
+                    presenter.moveCurrentLocation();
                 }
                 break;
         }
@@ -158,17 +149,6 @@ public class MainActivity extends AppCompatActivity implements AboutAppFragment.
             presenter.stopLoadingCsvData();
         }
         super.onPause();
-    }
-    public class TimerController extends TimerTask{
-        @Override
-        public void run() {
-            // Runnable() - run().
-            mainActivity.runOnUiThread(
-                    () -> {
-                        // get location data.
-                        presenter.moveCurrentLocation();
-                    });
-        }
     }
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {

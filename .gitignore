@@ -6,5 +6,5 @@
 /build
 /captures
 /app/src/main/assets
-
+*.apk
 ic_*dp.png

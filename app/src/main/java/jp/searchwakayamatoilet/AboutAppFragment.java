@@ -29,6 +29,8 @@ public class AboutAppFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setRetainInstance(true);
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
             this.setupWindowAnimations();
         }
@@ -72,9 +74,9 @@ public class AboutAppFragment extends Fragment {
         TextView _toiletMapView = (TextView) view.findViewById(R.id.about_credits_toiletmap_link);
         Pattern _toiletMapUrlPattern = Pattern.compile(getString(R.string.about_credits_toiletmap_link));
         Linkify.TransformFilter _toiletMapUrlFilter = (Matcher match, String url) -> {
-            return getString(R.string.about_credits_toiletmap_link);
+            return getString(R.string.about_credits_toiletmap_url);
         };
-        Linkify.addLinks(_toiletMapView, _toiletMapUrlPattern, getString(R.string.about_credits_toiletmap_link), null, _toiletMapUrlFilter);
+        Linkify.addLinks(_toiletMapView, _toiletMapUrlPattern, getString(R.string.about_credits_toiletmap_url), null, _toiletMapUrlFilter);
 
         TextView _retrolambdaView = (TextView) view.findViewById(R.id.about_credits_retrolambda_link);
         Pattern _retrolambdaPattern = Pattern.compile(getString(R.string.about_credits_retrolambda_link));

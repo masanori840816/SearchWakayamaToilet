@@ -4,7 +4,7 @@
     <string name="action_search">Search</string>
     <string name="action_update">Update</string>
     <string name="action_about">About</string>
-    <string name="google_maps_key">AIzaSyAwgIAixgpTVKjzns16prj4BwcH1pinrO0</string>
+    <string name="google_maps_key">AIzaSyDSjoIcWmuvrI71BhWwk4KyU6iQxhqWM4g</string>
     <string name="toast_failed_getting_location">位置情報の取得に失敗しました\nもう一度ボタンを押してください</string>
     <string name="toast_no_networks">機能を使用するためにはネットワークを有効にしてください</string>
     <string name="request_enable_location">2</string>

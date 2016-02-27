@@ -13,6 +13,9 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 /**
  * Created by masanori on 2016/01/24.
  */
@@ -25,8 +28,12 @@ public class MainPresenter {
     private ToiletDataSearcher dataSearcher;
     private boolean isLoadingCanceled;
 
+    private TimerController timeController;
+    private Timer tmrGettingLocationTimer;
+
     public MainPresenter(FragmentActivity newActivity){
         currentActivity = newActivity;
+        timeController = new TimerController(this);
         locationAccesser = new LocationAccesser(
                 (LocationManager) newActivity.getSystemService(Context.LOCATION_SERVICE)
                 , newActivity);
@@ -69,7 +76,23 @@ public class MainPresenter {
         dataSearcher.execute();
     }
     public void moveCurrentLocation(){
-        locationAccesser.moveCurrentLocation(this);
+        // GPSをONにした直後は値が取れない場合があるのでTimerで1秒待つ.
+        tmrGettingLocationTimer = new Timer();
+        tmrGettingLocationTimer.schedule(timeController, 1000L);
+    }
+    public class TimerController extends TimerTask{
+        private final MainPresenter mainPresenter;
+        public TimerController(MainPresenter presenter){
+            mainPresenter = presenter;
+        }
+        @Override
+        public void run() {
+            // Runnable() - run().
+            currentActivity.runOnUiThread(
+                    () -> {
+                        locationAccesser.moveCurrentLocation(mainPresenter);
+                    });
+        }
     }
     public void startLoadingCsvData(){
         currentActivity.runOnUiThread(

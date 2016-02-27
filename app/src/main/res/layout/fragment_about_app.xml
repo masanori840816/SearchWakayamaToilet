@@ -5,14 +5,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="jp.searchwakayamatoilet.AboutAppFragment">
-    <include layout="@layout/layout_toolbar" />
     <ScrollView
         android:id="@+id/about_scroll_view"
         android:layout_height="match_parent"
         android:layout_width="match_parent"
         android:fadingEdge="vertical"
         android:requiresFadingEdge="vertical"
-        android:fadingEdgeLength="200dp"
         android:background="@android:color/white">
         <LinearLayout
             android:id="@+id/about_linear_layout"
@@ -35,4 +33,5 @@
             <include layout="@layout/layout_about_credit_lightweight_stream_api" />
         </LinearLayout>
     </ScrollView>
+    <include layout="@layout/layout_toolbar" />
 </FrameLayout>
