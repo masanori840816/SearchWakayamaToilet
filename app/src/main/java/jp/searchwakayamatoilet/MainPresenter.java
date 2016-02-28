@@ -31,6 +31,8 @@ public class MainPresenter {
     private TimerController timeController;
     private Timer tmrGettingLocationTimer;
 
+    private String strLastQuery;
+
     public MainPresenter(FragmentActivity newActivity){
         currentActivity = newActivity;
         timeController = new TimerController(this);
@@ -39,19 +41,20 @@ public class MainPresenter {
                 , newActivity);
         loadingPanelViewer = new LoadingPanelViewer(newActivity, this);
     }
-    public void getMap(){
+    public void getMap(String newQuery){
+        strLastQuery = newQuery;
         // Android6.0以降なら権限確認.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             this.requestPermissions();
         } else {
-            locationAccesser.getGoogleMap(currentActivity, this);
+            locationAccesser.getGoogleMap(currentActivity, this, strLastQuery);
         }
     }
     @TargetApi(Build.VERSION_CODES.M)
     private void requestPermissions(){
         // 権限が許可されていない場合はリクエスト.
         if (currentActivity.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            locationAccesser.getGoogleMap(currentActivity, this);
+            locationAccesser.getGoogleMap(currentActivity, this, strLastQuery);
         } else {
             currentActivity.requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, R.string.request_permission);
         }
@@ -60,19 +63,19 @@ public class MainPresenter {
         // 権限リクエストの結果を取得する.
         if (intGrantResults[0] == PackageManager.PERMISSION_GRANTED) {
             // after being allowed permissions, get GoogleMap and start loading CSV.
-            locationAccesser.getGoogleMap(currentActivity, this);
+            locationAccesser.getGoogleMap(currentActivity, this, strLastQuery);
         }
     }
-    public void loadCsvData(boolean isExistingDataUsed){
+    public void loadCsvData(boolean isExistingDataUsed, String newQuery){
         isLoadingCanceled = false;
         locationAccesser.clearMap();
-        dataLoader = new ToiletDataLoader(currentActivity, isExistingDataUsed, this);
+        dataLoader = new ToiletDataLoader(currentActivity, isExistingDataUsed, this, newQuery);
         dataLoader.execute();
     }
-    public void setMarkersByFreeWord(String searchQuery) {
+    public void setMarkersByFreeWord(String newQuery) {
         isLoadingCanceled = false;
         locationAccesser.clearMap();
-        dataSearcher = new ToiletDataSearcher(currentActivity, this, searchQuery);
+        dataSearcher = new ToiletDataSearcher(currentActivity, this, newQuery);
         dataSearcher.execute();
     }
     public void moveCurrentLocation(){

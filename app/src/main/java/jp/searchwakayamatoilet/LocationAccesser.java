@@ -53,7 +53,7 @@ public class LocationAccesser  implements
         sqlite = dbAccesser.getWritableDatabase();
         currentActivity = newActivity;
     }
-    public void getGoogleMap(final FragmentActivity fragmentActivity, MainPresenter presenter){
+    public void getGoogleMap(final FragmentActivity fragmentActivity, MainPresenter presenter, String newQuery){
         // get GoogleMap instance.
         if (map != null) {
             return;
@@ -74,7 +74,7 @@ public class LocationAccesser  implements
                                     locationAccesser.moveToMyLocation(fragmentActivity, presenter);
                                     return false;
                                 });
-                                presenter.loadCsvData(true);
+                                presenter.loadCsvData(true, newQuery);
                             } catch (SecurityException ex) {
                                 presenter.showErrorDialog(ex.getLocalizedMessage());
                             }

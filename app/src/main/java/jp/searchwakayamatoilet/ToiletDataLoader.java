@@ -28,9 +28,9 @@ public class ToiletDataLoader extends AsyncTask<Void, Void, Integer> {
     private Activity currentActivity;
     private MainPresenter currentPresenter;
     private boolean isLoadingCancelled;
+    private String strQuery;
 
-
-    public ToiletDataLoader(Activity newActivity, boolean newIsExistingDataUsed, MainPresenter newPresenter){
+    public ToiletDataLoader(Activity newActivity, boolean newIsExistingDataUsed, MainPresenter newPresenter, String newQuery){
         currentPresenter = newPresenter;
         currentActivity = newActivity;
         isExistingDataUsed = newIsExistingDataUsed;
@@ -38,6 +38,7 @@ public class ToiletDataLoader extends AsyncTask<Void, Void, Integer> {
         dbAccesser = new DatabaseAccesser(newActivity);
         sqlite = dbAccesser.getWritableDatabase();
         isLoadingCancelled = false;
+        strQuery = newQuery;
     }
     public void stopLoading(){
         isLoadingCancelled = true;
@@ -46,6 +47,7 @@ public class ToiletDataLoader extends AsyncTask<Void, Void, Integer> {
 
     @Override
     protected Integer doInBackground(Void... params) {
+        dbAccesser.setSearchCriteriaFromFreeWord(strQuery);
         final ArrayList<DatabaseAccesser.ToiletInfoModel> aryToiletInfo = dbAccesser.search(sqlite);
         isTransactionStarted = false;
 

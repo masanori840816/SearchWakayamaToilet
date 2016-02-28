@@ -30,7 +30,7 @@ public class MainActivity extends AppCompatActivity implements AboutAppFragment.
     private ArrayAdapter<String> suggestListAdapter;
 
     private final static AboutAppFragment aboutAppFragment = new AboutAppFragment();
-
+    private String strLastQuery;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,6 +40,13 @@ public class MainActivity extends AppCompatActivity implements AboutAppFragment.
 
         Toolbar _toolbar = (Toolbar) findViewById(R.id.toolbar);
         _toolbar.inflateMenu(R.menu.menu_main);
+
+        if(savedInstanceState == null){
+            strLastQuery = "";
+        }
+        else {
+            strLastQuery = savedInstanceState.getString(getString(R.string.saveinstance_key_last_query));
+        }
 
         SearchView _searchView = (SearchView) MenuItemCompat.getActionView(_toolbar.getMenu().findItem(R.id.searchview));
         // hide Submit button.
@@ -56,11 +63,12 @@ public class MainActivity extends AppCompatActivity implements AboutAppFragment.
                 });
         _searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
-            public boolean onQueryTextSubmit(String searchWord) {
+            public boolean onQueryTextSubmit(String query) {
                 // hide suggest items.
                 suggestList.setVisibility(View.INVISIBLE);
                 // search toilet name or address by input words by Submit button or EnterKey.
-                presenter.setMarkersByFreeWord(searchWord);
+                presenter.setMarkersByFreeWord(query);
+                strLastQuery = query;
                 return false;
             }
 
@@ -99,6 +107,7 @@ public class MainActivity extends AppCompatActivity implements AboutAppFragment.
                 (parent, view, position, id) -> {
                     suggestList.setVisibility(View.INVISIBLE);
                     presenter.setMarkersByFreeWord("");
+                    strLastQuery = "";
                 });
         suggestList.setVisibility(View.INVISIBLE);
 
@@ -106,7 +115,7 @@ public class MainActivity extends AppCompatActivity implements AboutAppFragment.
         _toolbar.getMenu().findItem(R.id.update_button).setOnMenuItemClickListener(
                 item -> {
                     // reload toilet datas from csv.
-                    presenter.loadCsvData(false);
+                    presenter.loadCsvData(false, strLastQuery);
                     return false;
                 });
         _toolbar.getMenu().findItem(R.id.show_about_button).setOnMenuItemClickListener(
@@ -118,7 +127,7 @@ public class MainActivity extends AppCompatActivity implements AboutAppFragment.
                     transaction.commit();
                     return true;
                 });
-        presenter.getMap();
+        presenter.getMap(strLastQuery);
     }
     @Override
     public void onRequestPermissionsResult(int intRequestCode, String[] strPermissions, int[] intGrantResults) {
@@ -162,5 +171,10 @@ public class MainActivity extends AppCompatActivity implements AboutAppFragment.
                 }
         }
         return super.onOptionsItemSelected(item);
+    }
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(getString(R.string.saveinstance_key_last_query), strLastQuery);
     }
 }
