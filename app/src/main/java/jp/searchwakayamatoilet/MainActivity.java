@@ -52,7 +52,6 @@ public class MainActivity extends AppCompatActivity implements AboutAppFragment.
         // hide Submit button.
         _searchView.setSubmitButtonEnabled(false);
 
-
         _searchView.setQueryHint(getString(R.string.searchview_queryhint));
 
         // SearchView.OnCloseListener() - onClose().

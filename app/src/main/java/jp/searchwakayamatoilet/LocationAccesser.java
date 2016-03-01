@@ -28,6 +28,7 @@ import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
@@ -120,7 +121,8 @@ public class LocationAccesser  implements
             map.addMarker(new MarkerOptions().position(
                     new LatLng(dblLatitude, dblLongitude))
                     .title(strToiletName)
-                    .snippet(strSnippet));
+                    .snippet(strSnippet)
+                    .icon(BitmapDescriptorFactory.fromResource(R.mipmap.swt_marker)));
         }
     }
     private void moveToMyLocation(final FragmentActivity activity, MainPresenter presenter){
