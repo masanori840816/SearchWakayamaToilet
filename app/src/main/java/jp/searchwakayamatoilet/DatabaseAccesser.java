@@ -81,7 +81,7 @@ public class DatabaseAccesser extends SQLiteOpenHelper{
         strSearchCriteria = _newSearchCriteria.toString();
     }
     public ArrayList<ToiletInfoModel> search(SQLiteDatabase db){
-        ArrayList<ToiletInfoModel> aryToiletInfo = new ArrayList();
+        ArrayList<ToiletInfoModel> aryToiletInfo = new ArrayList<ToiletInfoModel>();
 
         Cursor _cursor = db.query("toiletinfo", null, strSearchCriteria, strSearchParameters, null, null, "id ASC", null);
 

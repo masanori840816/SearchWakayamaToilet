@@ -31,6 +31,7 @@
             <include layout="@layout/layout_about_credit_toiletmap" />
             <include layout="@layout/layout_about_credit_retrolambda" />
             <include layout="@layout/layout_about_credit_lightweight_stream_api" />
+            <include layout="@layout/layout_about_credit_android_retrolambda_lombok" />
         </LinearLayout>
     </ScrollView>
     <include layout="@layout/layout_toolbar" />

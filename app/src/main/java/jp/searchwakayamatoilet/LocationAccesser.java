@@ -96,14 +96,10 @@ public class LocationAccesser  implements
     public void moveCurrentLocation(MainPresenter presenter){
         try {
             // 現在位置を中央に表示.
-            Location currentLocation = map.getMyLocation();
-
-            if(currentLocation == null){
-                Criteria criteria = new Criteria();
-                criteria.setAccuracy(Criteria.ACCURACY_COARSE);
-                // 位置情報が取得できるプロバイダから現在位置の取得.
-                currentLocation = locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, true));
-            }
+            Criteria criteria = new Criteria();
+            criteria.setAccuracy(Criteria.ACCURACY_COARSE);
+            // 位置情報が取得できるプロバイダから現在位置の取得.
+            Location currentLocation = locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, true));
             if(currentLocation == null) {
                 // if can't get location, show Toast.
                 Toast.makeText(currentActivity, R.string.toast_failed_getting_location, Toast.LENGTH_SHORT).show();

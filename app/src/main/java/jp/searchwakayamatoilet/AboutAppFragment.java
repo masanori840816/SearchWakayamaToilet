@@ -71,27 +71,22 @@ public class AboutAppFragment extends Fragment {
         };
         Linkify.addLinks(_projectView, _projectUrlPattern, getString(R.string.about_project_url), null, _projectUrlFilter);
 
-        TextView _toiletMapView = (TextView) view.findViewById(R.id.about_credits_toiletmap_link);
-        Pattern _toiletMapUrlPattern = Pattern.compile(getString(R.string.about_credits_toiletmap_link));
-        Linkify.TransformFilter _toiletMapUrlFilter = (Matcher match, String url) -> {
-            return getString(R.string.about_credits_toiletmap_url);
-        };
-        Linkify.addLinks(_toiletMapView, _toiletMapUrlPattern, getString(R.string.about_credits_toiletmap_url), null, _toiletMapUrlFilter);
-
-        TextView _retrolambdaView = (TextView) view.findViewById(R.id.about_credits_retrolambda_link);
-        Pattern _retrolambdaPattern = Pattern.compile(getString(R.string.about_credits_retrolambda_link));
-        Linkify.TransformFilter _retrolambdaUrlFilter = (Matcher match, String url) -> {
-            return getString(R.string.about_credits_retrolambda_url);
-        };
-        Linkify.addLinks(_retrolambdaView, _retrolambdaPattern, getString(R.string.about_credits_retrolambda_url), null, _retrolambdaUrlFilter);
-
-        TextView _lightweightStreamApiView = (TextView) view.findViewById(R.id.about_credits_lightweight_stream_api_link);
-        Pattern _lightweightStreamApiPattern = Pattern.compile(getString(R.string.about_credits_lightweight_stream_api_link));
-        Linkify.TransformFilter _lightweightStreamApiUrlFilter = (Matcher match, String url) -> {
-            return getString(R.string.about_credits_lightweight_stream_api_url);
-        };
-        Linkify.addLinks(_lightweightStreamApiView, _lightweightStreamApiPattern, getString(R.string.about_credits_lightweight_stream_api_url), null, _lightweightStreamApiUrlFilter);
-
+        setLink(view
+                , R.id.about_credits_toiletmap_link
+                , getString(R.string.about_credits_toiletmap_link)
+                , getString(R.string.about_credits_toiletmap_url));
+        setLink(view
+                , R.id.about_credits_retrolambda_link
+                , getString(R.string.about_credits_retrolambda_link)
+                , getString(R.string.about_credits_retrolambda_url));
+        setLink(view
+                , R.id.about_credits_lightweight_stream_api_link
+                , getString(R.string.about_credits_lightweight_stream_api_link)
+                , getString(R.string.about_credits_lightweight_stream_api_url));
+        setLink(view
+                , R.id.about_credits_android_retrolambda_lombok_link
+                , getString(R.string.about_credits_android_retrolambda_lombok_link)
+                , getString(R.string.about_credits_android_retrolambda_lombok_url));
         // Inflate the layout for this fragment
         return view;
     }
@@ -115,5 +110,12 @@ public class AboutAppFragment extends Fragment {
 
     public interface OnFragmentInteractionListener {
     }
-
+    private void setLink(View view, int intLinkId, String strLinkText, String strLinkUrl){
+        TextView _textView = (TextView) view.findViewById(intLinkId);
+        Pattern _pattern = Pattern.compile(strLinkText);
+        Linkify.TransformFilter _urlFilter = (Matcher match, String url) -> {
+            return strLinkUrl;
+        };
+        Linkify.addLinks(_textView, _pattern, strLinkUrl, null, _urlFilter);
+    }
 }

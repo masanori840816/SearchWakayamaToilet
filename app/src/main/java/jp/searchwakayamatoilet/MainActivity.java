@@ -15,6 +15,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
@@ -53,7 +54,7 @@ public class MainActivity extends AppCompatActivity implements AboutAppFragment.
         _searchView.setSubmitButtonEnabled(false);
 
         _searchView.setQueryHint(getString(R.string.searchview_queryhint));
-
+        _searchView.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
         // SearchView.OnCloseListener() - onClose().
         _searchView.setOnCloseListener(
                 () -> {
@@ -84,6 +85,7 @@ public class MainActivity extends AppCompatActivity implements AboutAppFragment.
                 return false;
             }
         });
+
         suggestList = (ListView) findViewById(R.id.suggest_list);
 
         // set suggest items(2016.01.13: only for searching all items).
@@ -154,7 +156,7 @@ public class MainActivity extends AppCompatActivity implements AboutAppFragment.
     public void onPause(){
         // if toilet datas are loading from csv, stop loading.
         if(presenter != null) {
-            presenter.stopLoadingCsvData();
+            //presenter.stopLoadingCsvData();
         }
         super.onPause();
     }
