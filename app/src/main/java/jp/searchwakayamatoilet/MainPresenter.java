@@ -9,6 +9,14 @@ import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.os.Build;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.MenuItemCompat;
+import android.support.v7.widget.SearchView;
+import android.support.v7.widget.Toolbar;
+import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -25,30 +33,28 @@ public class MainPresenter {
     private final LocationAccesser locationAccesser;
     private final LoadingPanelViewer loadingPanelViewer;
     private ToiletDataLoader dataLoader;
-    private ToiletDataSearcher dataSearcher;
     private boolean isLoadingCanceled;
 
     private TimerController timeController;
-    private Timer tmrGettingLocationTimer;
 
+    private ListView suggestList;
     private String strLastQuery;
 
-    public MainPresenter(FragmentActivity newActivity){
+    private final static AboutAppFragment aboutAppFragment = new AboutAppFragment();
+
+    public String getStrLastQuery(){
+        return strLastQuery;
+    }
+    public MainPresenter(FragmentActivity newActivity, String lastQuery){
         currentActivity = newActivity;
         timeController = new TimerController(this);
         locationAccesser = new LocationAccesser(
                 (LocationManager) newActivity.getSystemService(Context.LOCATION_SERVICE)
                 , newActivity);
         loadingPanelViewer = new LoadingPanelViewer(newActivity, this);
-    }
-    public void getMap(String newQuery){
-        strLastQuery = newQuery;
-        // Android6.0以降なら権限確認.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            this.requestPermissions();
-        } else {
-            locationAccesser.getGoogleMap(currentActivity, this, strLastQuery);
-        }
+
+        strLastQuery = lastQuery;
+        init();
     }
     @TargetApi(Build.VERSION_CODES.M)
     private void requestPermissions(){
@@ -72,15 +78,9 @@ public class MainPresenter {
         dataLoader = new ToiletDataLoader(currentActivity, isExistingDataUsed, this, newQuery);
         dataLoader.execute();
     }
-    public void setMarkersByFreeWord(String newQuery) {
-        isLoadingCanceled = false;
-        locationAccesser.clearMap();
-        dataSearcher = new ToiletDataSearcher(currentActivity, this, newQuery);
-        dataSearcher.execute();
-    }
     public void moveCurrentLocation(){
         // GPSをONにした直後は値が取れない場合があるのでTimerで1秒待つ.
-        tmrGettingLocationTimer = new Timer();
+        Timer tmrGettingLocationTimer = new Timer();
         tmrGettingLocationTimer.schedule(timeController, 1000L);
     }
     public class TimerController extends TimerTask{
@@ -130,12 +130,12 @@ public class MainPresenter {
                         if(isLoadingCanceled){
                             break;
                         }
-                        StringBuilder _newSnippet = new StringBuilder(currentActivity.getString(R.string.marker_address));
-                        _newSnippet.append(toiletInfo.address);
-                        _newSnippet.append(currentActivity.getString(R.string.marker_availabletime));
-                        _newSnippet.append(toiletInfo.availableTime);
+                        String newSnippet = currentActivity.getString(R.string.marker_address);
+                        newSnippet += toiletInfo.address;
+                        newSnippet += currentActivity.getString(R.string.marker_availabletime);
+                        newSnippet += toiletInfo.availableTime;
 
-                        locationAccesser.addMarker(toiletInfo.toiletName, toiletInfo.latitude, toiletInfo.longitude, _newSnippet.toString());
+                        locationAccesser.addMarker(toiletInfo.toiletName, toiletInfo.latitude, toiletInfo.longitude, newSnippet);
                     }
                 });
     }
@@ -157,5 +157,119 @@ public class MainPresenter {
                     alert.setPositiveButton(currentActivity.getString(android.R.string.ok), null);
                     alert.show();
                 });
+    }
+    public void onPaused(){
+        // バックグラウンドでは処理を止める.
+    }
+    public boolean onOptionsItemSelected(int itemId){
+        switch (itemId){
+            case android.R.id.home:
+                if(aboutAppFragment != null){
+                    FragmentTransaction transaction = currentActivity.getSupportFragmentManager().beginTransaction();
+                    transaction.remove(aboutAppFragment);
+                    transaction.commit();
+                    return true;
+                }
+                break;
+        }
+        return false;
+    }
+    private void init(){
+        Toolbar toolbar = (Toolbar) currentActivity.findViewById(R.id.toolbar);
+        toolbar.inflateMenu(R.menu.menu_main);
+
+        SearchView searchView = (SearchView) MenuItemCompat.getActionView(toolbar.getMenu().findItem(R.id.searchview));
+        // hide Submit button.
+        searchView.setSubmitButtonEnabled(false);
+
+        searchView.setQueryHint(currentActivity.getString(R.string.searchview_queryhint));
+        searchView.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
+        // SearchView.OnCloseListener() - onClose().
+        searchView.setOnCloseListener(
+                () -> {
+                    suggestList.setVisibility(View.INVISIBLE);
+                    return false;
+                });
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                // hide suggest items.
+                suggestList.setVisibility(View.INVISIBLE);
+                // search toilet name or address by input words by Submit button or EnterKey.
+                setMarkersByFreeWord(query);
+                strLastQuery = query;
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                // if the textarea empty, show suggest items.
+                if (newText.equals("")) {
+                    if(searchView.isShown()){
+                        suggestList.setVisibility(View.VISIBLE);
+                    }
+                } else {
+                    suggestList.setVisibility(View.INVISIBLE);
+                }
+                return false;
+            }
+        });
+
+        suggestList = (ListView) currentActivity.findViewById(R.id.suggest_list);
+
+        // set suggest items(2016.01.13: only for searching all items).
+        ArrayList<String> suggestItemSearchAll = new ArrayList<>();
+        suggestItemSearchAll.add(currentActivity.getString(R.string.suggest_search_all));
+
+        // Adapter - ArrayAdapter
+        ArrayAdapter<String> suggestListAdapter = new ArrayAdapter<>(
+                currentActivity,
+                R.layout.layout_suggest_item,
+                suggestItemSearchAll
+        );
+
+        // set on listview.
+        suggestList.setAdapter(suggestListAdapter);
+        // AdapterView.OnItemClickListener() - onItemClick(AdapterView<?> parent, View view, int position, long id).
+        suggestList.setOnItemClickListener(
+                (parent, view, position, id) -> {
+                    suggestList.setVisibility(View.INVISIBLE);
+                    setMarkersByFreeWord("");
+                    strLastQuery = "";
+                });
+        suggestList.setVisibility(View.INVISIBLE);
+
+        // MenuItem.OnMenuItemClickListener() - onMenuItemClick(MenuItem item).
+        toolbar.getMenu().findItem(R.id.update_button).setOnMenuItemClickListener(
+                item -> {
+                    // reload toilet datas from csv.
+                    loadCsvData(false, strLastQuery);
+                    return false;
+                });
+        toolbar.getMenu().findItem(R.id.show_about_button).setOnMenuItemClickListener(
+                item -> {
+                    // aboutページの表示.
+                    FragmentTransaction transaction = currentActivity.getSupportFragmentManager().beginTransaction();
+                    transaction.replace(R.id.main_container, aboutAppFragment);
+                    transaction.addToBackStack(null);
+                    transaction.commit();
+                    return true;
+                });
+        getMap(strLastQuery);
+    }
+    private void getMap(String newQuery){
+        strLastQuery = newQuery;
+        // Android6.0以降なら権限確認.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            this.requestPermissions();
+        } else {
+            locationAccesser.getGoogleMap(currentActivity, this, strLastQuery);
+        }
+    }
+    private void setMarkersByFreeWord(String newQuery) {
+        isLoadingCanceled = false;
+        locationAccesser.clearMap();
+        ToiletDataSearcher dataSearcher = new ToiletDataSearcher(currentActivity, this, newQuery);
+        dataSearcher.execute();
     }
 }
