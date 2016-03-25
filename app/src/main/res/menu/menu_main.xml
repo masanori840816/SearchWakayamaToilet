@@ -3,13 +3,13 @@
     xmlns:tools="http://schemas.android.com/tools" tools:context=".MainActivity">
     <item android:id="@+id/searchview"
         android:title="@string/action_search"
-        android:icon="@mipmap/ic_search_black_24dp"
+        android:icon="@mipmap/ic_search_white_48dp"
         android:imeOptions="flagNoExtractUi"
         app:showAsAction="always"
         app:actionViewClass="android.support.v7.widget.SearchView" />
     <item android:id="@+id/update_button"
         android:title="@string/action_update"
-        android:icon="@mipmap/ic_cached_black_24dp"
+        android:icon="@mipmap/ic_cached_white_48dp"
         app:showAsAction="always"/>
     <item android:id="@+id/show_about_button"
         android:title="@string/action_about"

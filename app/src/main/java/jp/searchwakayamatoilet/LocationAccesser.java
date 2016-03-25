@@ -7,7 +7,6 @@ package jp.searchwakayamatoilet;
 
 import android.app.Activity;
 import android.content.IntentSender;
-import android.database.sqlite.SQLiteDatabase;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
@@ -41,17 +40,11 @@ public class LocationAccesser  implements
     private GoogleApiClient apiClient;
     private final LocationAccesser locationAccesser;
 
-    private final DatabaseAccesser dbAccesser;
-    private final SQLiteDatabase sqlite;
-
     private final Activity currentActivity;
 
     public LocationAccesser(final LocationManager newLocationManager, Activity newActivity){
         locationAccesser = this;
         locationManager = newLocationManager;
-
-        dbAccesser = new DatabaseAccesser(newActivity);
-        sqlite = dbAccesser.getWritableDatabase();
         currentActivity = newActivity;
     }
     public void getGoogleMap(final FragmentActivity fragmentActivity, MainPresenter presenter, String newQuery){
