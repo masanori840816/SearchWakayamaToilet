@@ -92,25 +92,21 @@ public class ToiletDataLoader extends AsyncTask<Void, Void, Integer> {
                     if (! patternNum.matcher(strLine).find()) {
                         continue;
                     }
-                    // Split後に9件データがある行のみ.
+                    // Split後に8件データがある行のみ.
                     strSplited = strLine.split(",");
 
-                    if (strSplited.length >= 9) {
-                        // 0:No, 1:名称, 2:名称(英語), 3:名称(中国語), 4:市町村名, 5:住所, 6:住所(英語), 7:住所(中国語)
-                        // ,8: 緯度, 9:経度, 10:利用時間.
+                    if (strSplited.length >= 8) {
+                        // 0:No, 1:名称, 2:市町村名, 3:住所, 4: 緯度, 5:経度, 6:利用時間, 7: 多目的トイレの有無.
                         DatabaseAccesser.ToiletInfoModel _toiletInfoModel = dbAccesser.new ToiletInfoModel();
                         _toiletInfoModel.toiletName = strSplited[1];
-                        _toiletInfoModel.toiletEnglishName = strSplited[2];
-                        _toiletInfoModel.toiletChineseName = strSplited[3];
                         // 都道府県は和歌山固定.
                         _toiletInfoModel.district = "和歌山";
-                        _toiletInfoModel.municipality = strSplited[4];
-                        _toiletInfoModel.address = strSplited[5];
-                        _toiletInfoModel.englishAddress = strSplited[6];
-                        _toiletInfoModel.chineseAddress = strSplited[7];
-                        _toiletInfoModel.latitude = tryParseToDouble(strSplited[8]);
-                        _toiletInfoModel.longitude = tryParseToDouble(strSplited[9]);
-                        _toiletInfoModel.availableTime = strSplited[10];
+                        _toiletInfoModel.municipality = strSplited[2];
+                        _toiletInfoModel.address = strSplited[3];
+                        _toiletInfoModel.latitude = tryParseToDouble(strSplited[4]);
+                        _toiletInfoModel.longitude = tryParseToDouble(strSplited[5]);
+                        _toiletInfoModel.availableTime = strSplited[6];
+                        _toiletInfoModel.hasMultiPurposeToilet = Boolean.valueOf(strSplited[7]);
 
                         aryLoadedToiletInfo.add(_toiletInfoModel);
 

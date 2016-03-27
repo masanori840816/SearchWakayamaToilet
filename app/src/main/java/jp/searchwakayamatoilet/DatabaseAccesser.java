@@ -18,13 +18,9 @@ public class DatabaseAccesser extends SQLiteOpenHelper{
     public class ToiletInfoModel{
         public int id = 0;
         public String toiletName;
-        public String toiletEnglishName;
-        public String toiletChineseName;
         public String district;
         public String municipality;
         public String address;
-        public String englishAddress;
-        public String chineseAddress;
         public double latitude;
         public double longitude;
         public String availableTime;
@@ -34,7 +30,7 @@ public class DatabaseAccesser extends SQLiteOpenHelper{
     private String[] strSearchParameters;
 
     public DatabaseAccesser(Context context){
-        super(context, "toiletinfo.db", null, 2);
+        super(context, "toiletinfo.db", null, 3);
     }
     public void insertInfo(SQLiteDatabase db, ToiletInfoModel toiletInfo){
 
@@ -42,13 +38,9 @@ public class DatabaseAccesser extends SQLiteOpenHelper{
         ContentValues contentValues = new ContentValues();
 
         contentValues.put("toiletname", toiletInfo.toiletName);
-        contentValues.put("toiletenglishname", toiletInfo.toiletEnglishName);
-        contentValues.put("toiletchinesename", toiletInfo.toiletChineseName);
         contentValues.put("district", toiletInfo.district);
         contentValues.put("municipality", toiletInfo.municipality);
         contentValues.put("address", toiletInfo.address);
-        contentValues.put("englishaddress", toiletInfo.englishAddress);
-        contentValues.put("chineseaddress", toiletInfo.chineseAddress);
         contentValues.put("latitude", toiletInfo.latitude);
         contentValues.put("longitude", toiletInfo.longitude);
         contentValues.put("availabletime", toiletInfo.availableTime);
@@ -85,19 +77,14 @@ public class DatabaseAccesser extends SQLiteOpenHelper{
 
         Cursor _cursor = db.query("toiletinfo", null, strSearchCriteria, strSearchParameters, null, null, "id ASC", null);
 
-
         _cursor.moveToFirst();
 
         for(int i = 0; i < _cursor.getCount(); i++){
             ToiletInfoModel toiletInfoModel = new ToiletInfoModel();
             toiletInfoModel.toiletName = _cursor.getString(_cursor.getColumnIndex("toiletname"));
-            toiletInfoModel.toiletEnglishName = _cursor.getString(_cursor.getColumnIndex("toiletenglishname"));
-            toiletInfoModel.toiletChineseName = _cursor.getString(_cursor.getColumnIndex("toiletchinesename"));
             toiletInfoModel.district = _cursor.getString(_cursor.getColumnIndex("district"));
             toiletInfoModel.municipality = _cursor.getString(_cursor.getColumnIndex("municipality"));
             toiletInfoModel.address = _cursor.getString(_cursor.getColumnIndex("address"));
-            toiletInfoModel.englishAddress = _cursor.getString(_cursor.getColumnIndex("englishaddress"));
-            toiletInfoModel.chineseAddress = _cursor.getString(_cursor.getColumnIndex("chineseaddress"));
             toiletInfoModel.latitude = _cursor.getDouble(_cursor.getColumnIndex("latitude"));
             toiletInfoModel.longitude = _cursor.getDouble(_cursor.getColumnIndex("longitude"));
             toiletInfoModel.availableTime = _cursor.getString(_cursor.getColumnIndex("availabletime"));
@@ -106,6 +93,7 @@ public class DatabaseAccesser extends SQLiteOpenHelper{
             aryToiletInfo.add(toiletInfoModel);
             _cursor.moveToNext();
         }
+        _cursor.close();
         // 検索後はNullに戻す.
         strSearchCriteria = null;
         strSearchParameters = null;
@@ -115,26 +103,30 @@ public class DatabaseAccesser extends SQLiteOpenHelper{
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("CREATE TABLE IF NOT EXISTS toiletinfo("
-                        + "id INTEGER PRIMARY KEY, "
-                        + "toiletname TEXT NOT NULL, "
-                        + "toiletenglishname TEXT, "
-                        + "toiletchinesename TEXT, "
-                        + "district TEXT, "
-                        + "municipality TEXT, "
-                        + "address TEXT NOT NULL, "
-                        + "englishaddress TEXT NOT NULL, "
-                        + "chineseaddress TEXT NOT NULL, "
-                        + "latitude REAL NOT NULL, "
-                        + "longitude REAL NOT NULL, "
-                        + "availabletime TEXT, "
-                        + "hasMultiPurposeToilet NUMERIC, "
-                        + "lastupdatedate INTEGER)"
-        );
+                + "id INTEGER PRIMARY KEY, "
+                + "toiletname TEXT NOT NULL, "
+                + "district TEXT, "
+                + "municipality TEXT, "
+                + "address TEXT NOT NULL, "
+                + "latitude REAL NOT NULL, "
+                + "longitude REAL NOT NULL, "
+                + "availabletime TEXT, "
+                + "hasMultiPurposeToilet NUMERIC, "
+                + "lastupdatedate INTEGER)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS toiletaltname("
+                + "toiletid INTEGER NOT NULL, "
+                + "language TEXT NOT NULL, "
+                + "alttoiletname TEXT NOT NULL, "
+                + "altdistrict TEXT, "
+                + "altmunicipality TEXT, "
+                + "altaddress"
+                + "lastupdatedate INTEGER)");
     }
     @Override
     public void onUpgrade(SQLiteDatabase db, int intOldVer, int intNewVer)
     {
         db.execSQL("DROP TABLE IF EXISTS toiletinfo");
+        db.execSQL("DROP TABLE IF EXISTS toiletaltname");
         this.onCreate(db);
     }
 }
