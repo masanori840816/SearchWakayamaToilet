@@ -5,5 +5,5 @@
     android:layout_height="wrap_content"
     android:layout_width="match_parent"
     android:minHeight="50dp"
-    android:background="@color/primary_dark_material_light">
+    android:background="?attr/colorPrimaryDark">
 </android.support.v7.widget.Toolbar>

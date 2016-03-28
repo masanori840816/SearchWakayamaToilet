@@ -4,7 +4,6 @@ import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.os.Build;
@@ -47,6 +46,7 @@ public class MainPresenter {
     }
     public MainPresenter(FragmentActivity newActivity, String lastQuery){
         currentActivity = newActivity;
+
         timeController = new TimerController(this);
         locationAccesser = new LocationAccesser(
                 (LocationManager) newActivity.getSystemService(Context.LOCATION_SERVICE)
