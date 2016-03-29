@@ -1,7 +1,6 @@
 package jp.searchwakayamatoilet;
 
 import android.annotation.TargetApi;
-import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -19,8 +18,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class AboutAppFragment extends Fragment {
-
-    private OnFragmentInteractionListener interactionListener;
 
     public AboutAppFragment() {
         // Required empty public constructor
@@ -53,13 +50,15 @@ public class AboutAppFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.fragment_about_app, container, false);
         Toolbar toolbar = (Toolbar) view.findViewById(R.id.toolbar);
-
         AppCompatActivity activity = (AppCompatActivity) getActivity();
         activity.setSupportActionBar(toolbar);
-        activity.getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        activity.getSupportActionBar().setHomeButtonEnabled(true);
-        // hide home button's title.
-        activity.getSupportActionBar().setDisplayShowTitleEnabled(false);
+        android.support.v7.app.ActionBar actionBar = activity.getSupportActionBar();
+        if(actionBar != null){
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setHomeButtonEnabled(true);
+            // hide home button's title.
+            actionBar.setDisplayShowTitleEnabled(false);
+        }
 
         // add links to textviews.
         TextView _projectView = (TextView) view.findViewById(R.id.about_project_link);
@@ -89,23 +88,6 @@ public class AboutAppFragment extends Fragment {
                 , getString(R.string.about_credits_android_retrolambda_lombok_url));
         // Inflate the layout for this fragment
         return view;
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            interactionListener = (OnFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        interactionListener = null;
     }
 
     public interface OnFragmentInteractionListener {
