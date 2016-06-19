@@ -1,6 +1,6 @@
 /**
  * Created by Masanori on 2015/12/09.
- * this class is main controller of this application.
+ * this class is main page activity.
  */
 package jp.searchwakayamatoilet
 
@@ -14,16 +14,13 @@ import android.view.MenuItem
 
 class MainActivity : AppCompatActivity(), AboutAppFragment.OnFragmentInteractionListener {
 
-    private var presenter: MainPresenter? = null
+    lateinit private var presenter: MainPresenter
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        var _lastQuery = ""
-        if (savedInstanceState != null) {
-            _lastQuery = savedInstanceState.getString(getString(R.string.saveinstance_key_last_query))
-        }
+        val _lastQuery = savedInstanceState?.getString(getString(R.string.saveinstance_key_last_query))
 
         presenter = MainPresenter(this, _lastQuery)
     }
@@ -31,7 +28,7 @@ class MainActivity : AppCompatActivity(), AboutAppFragment.OnFragmentInteraction
     override fun onRequestPermissionsResult(intRequestCode: Int, strPermissions: Array<String>, intGrantResults: IntArray) {
         // 権限リクエストの結果を取得する.
         if (intRequestCode == R.string.request_permission) {
-            presenter!!.onRequestPermissionsResult(intGrantResults)
+            presenter.onRequestPermissionsResult(intGrantResults)
         } else {
             super.onRequestPermissionsResult(intRequestCode, strPermissions, intGrantResults)
         }
@@ -42,21 +39,19 @@ class MainActivity : AppCompatActivity(), AboutAppFragment.OnFragmentInteraction
         when (requestCode) {
             R.string.request_enable_location -> if (resultCode == Activity.RESULT_OK) {
                 // get location data.
-                presenter!!.moveCurrentLocation()
+                presenter.moveCurrentLocation()
             }
         }
     }
 
     public override fun onPause() {
         // if toilet datas are loading from csv, stop loading.
-        if (presenter != null) {
-            presenter!!.onPaused()
-        }
+        presenter.onPaused()
         super.onPause()
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (presenter!!.onOptionsItemSelected(item.itemId)) {
+        if (presenter.onOptionsItemSelected(item.itemId)) {
             return true
         }
         return super.onOptionsItemSelected(item)
@@ -64,6 +59,6 @@ class MainActivity : AppCompatActivity(), AboutAppFragment.OnFragmentInteraction
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putString(getString(R.string.saveinstance_key_last_query), presenter!!.strLastQuery)
+        outState.putString(getString(R.string.saveinstance_key_last_query), presenter.strLastQuery)
     }
 }

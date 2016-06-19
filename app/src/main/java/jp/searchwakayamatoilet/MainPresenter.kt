@@ -28,7 +28,7 @@ import java.util.TimerTask
  * Created by masanori on 2016/01/24.
  */
 class MainPresenter(//private Activity currentActivity;
-        private val currentActivity: FragmentActivity?, lastQuery: String) {
+        private val currentActivity: FragmentActivity, lastQuery: String?) {
     private val locationAccesser: LocationAccesser
     private val loadingPanelViewer: LoadingPanelViewer?
     private var dataLoader: ToiletDataLoader? = null
@@ -44,7 +44,7 @@ class MainPresenter(//private Activity currentActivity;
 
         timeController = TimerController(this)
         locationAccesser = LocationAccesser(
-                currentActivity?.getSystemService(Context.LOCATION_SERVICE) as LocationManager, currentActivity as Activity)
+                currentActivity.getSystemService(Context.LOCATION_SERVICE) as LocationManager, currentActivity as Activity)
         loadingPanelViewer = LoadingPanelViewer(currentActivity, this)
 
         strLastQuery = lastQuery
@@ -54,10 +54,10 @@ class MainPresenter(//private Activity currentActivity;
     @TargetApi(Build.VERSION_CODES.M)
     private fun requestPermissions() {
         // 権限が許可されていない場合はリクエスト.
-        if (currentActivity?.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+        if (currentActivity.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             locationAccesser.getGoogleMap(currentActivity, this, strLastQuery)
         } else {
-            currentActivity?.requestPermissions(arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION), R.string.request_permission)
+            currentActivity.requestPermissions(arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION), R.string.request_permission)
         }
     }
 
@@ -91,20 +91,17 @@ class MainPresenter(//private Activity currentActivity;
     inner class TimerController(private val mainPresenter: MainPresenter) : TimerTask() {
         override fun run() {
             // Runnable() - run().
-            currentActivity?.runOnUiThread { locationAccesser.moveCurrentLocation(mainPresenter) }
+            currentActivity.runOnUiThread { locationAccesser.moveCurrentLocation(mainPresenter) }
         }
     }
 
     fun startLoadingCsvData() {
-        currentActivity?.runOnUiThread { // show loading dialog.
+        currentActivity.runOnUiThread { // show loading dialog.
             loadingPanelViewer!!.show()
         }
     }
 
     fun stopLoadingCsvData() {
-        if (currentActivity == null) {
-            return
-        }
         // Runnable() - run().
         currentActivity.runOnUiThread {
             isLoadingCanceled = true
@@ -117,7 +114,7 @@ class MainPresenter(//private Activity currentActivity;
     }
 
     fun addMarker(toiletInfoModelList: ArrayList<DatabaseAccesser.ToiletInfoModel>) {
-        currentActivity?.runOnUiThread {
+        currentActivity.runOnUiThread {
             for (toiletInfo in toiletInfoModelList) {
                 if (isLoadingCanceled) {
                     break
@@ -134,17 +131,17 @@ class MainPresenter(//private Activity currentActivity;
 
     fun showToast(messageNum: Int) {
         // Runnable() - run().
-        currentActivity?.runOnUiThread { Toast.makeText(currentActivity, messageNum, Toast.LENGTH_SHORT).show() }
+        currentActivity.runOnUiThread { Toast.makeText(currentActivity, messageNum, Toast.LENGTH_SHORT).show() }
     }
 
     fun showErrorDialog(errorMessage: String?) {
         // Runnable() - run().
-        currentActivity?.runOnUiThread {
+        currentActivity.runOnUiThread {
             val alert = AlertDialog.Builder(currentActivity)
-            alert.setTitle(currentActivity?.getString(R.string.error_title))
-            alert.setMessage(currentActivity?.getString(R.string.error_dialog) + errorMessage)
+            alert.setTitle(currentActivity.getString(R.string.error_title))
+            alert.setMessage(currentActivity.getString(R.string.error_dialog) + errorMessage)
             // DialogInterface.OnClickListener() - onClick(DialogInterface dialog, int which).
-            alert.setPositiveButton(currentActivity?.getString(android.R.string.ok), null)
+            alert.setPositiveButton(currentActivity.getString(android.R.string.ok), null)
             alert.show()
         }
     }
@@ -166,7 +163,7 @@ class MainPresenter(//private Activity currentActivity;
     }
 
     private fun init() {
-        val toolbar = currentActivity!!.findViewById(R.id.toolbar) as Toolbar
+        val toolbar = currentActivity.findViewById(R.id.toolbar) as Toolbar
         toolbar.inflateMenu(R.menu.menu_main)
 
         val searchView = MenuItemCompat.getActionView(toolbar.menu.findItem(R.id.searchview)) as SearchView
@@ -258,10 +255,8 @@ class MainPresenter(//private Activity currentActivity;
     private fun setMarkersByFreeWord(newQuery: String) {
         isLoadingCanceled = false
         locationAccesser.clearMap()
-        if(currentActivity != null){
-            val dataSearcher = ToiletDataSearcher(currentActivity, this, newQuery)
-            dataSearcher.execute()
-        }
+        val dataSearcher = ToiletDataSearcher(currentActivity, this, newQuery)
+        dataSearcher.execute()
     }
 
     companion object {
