@@ -82,7 +82,7 @@ class MainActivityViewTest {
     @Throws(Exception::class)
     fun isAboutFragmentShown() {
         this.hasAboutAppButtonInMenu()
-        onView(ViewMatchers.withId(R.id.about_fragment)).check(matches(isDisplayed()))
+        onView(ViewMatchers.withId(R.id.about_activity)).check(matches(isDisplayed()))
     }
 
     @Test

@@ -38,9 +38,12 @@ class DatabaseAccesser(context: Context) : SQLiteOpenHelper(context, "toiletinfo
         db.insert("toiletinfo", null, contentValues)
     }
 
-    fun setSearchCriteriaFromFreeWord(strWord: String) {
+    fun setSearchCriteriaFromFreeWord(strWord: String?) {
         // とりあえずAnd検索のみ.
-        val splittedWords = strWord.split("　|\\s".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+        val splittedWords = strWord?.split("　|\\s".toRegex())?.dropLastWhile { it.isEmpty() }?.toTypedArray()
+        if(splittedWords == null){
+            return
+        }
         val _newSearchCriteria = StringBuilder()
 
         var i = 0

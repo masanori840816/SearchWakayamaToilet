@@ -5,6 +5,7 @@ import android.annotation.TargetApi
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.os.Build
@@ -13,6 +14,7 @@ import android.support.v4.app.FragmentTransaction
 import android.support.v4.view.MenuItemCompat
 import android.support.v7.widget.SearchView
 import android.support.v7.widget.Toolbar
+import android.util.Log
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.ArrayAdapter
@@ -27,8 +29,7 @@ import java.util.TimerTask
 /**
  * Created by masanori on 2016/01/24.
  */
-class MainPresenter(//private Activity currentActivity;
-        private val currentActivity: FragmentActivity, lastQuery: String?) {
+class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: String?) {
     private val locationAccesser: LocationAccesser
     private val loadingPanelViewer: LoadingPanelViewer?
     private var dataLoader: ToiletDataLoader? = null
@@ -73,12 +74,7 @@ class MainPresenter(//private Activity currentActivity;
         isLoadingCanceled = false
         locationAccesser.clearMap()
 
-        var setQuery = ""
-
-        if(newQuery != null){
-            setQuery = newQuery
-        }
-        dataLoader = ToiletDataLoader(currentActivity, isExistingDataUsed, this, setQuery)
+        dataLoader = ToiletDataLoader(currentActivity, isExistingDataUsed, this, newQuery)
         dataLoader?.execute()
     }
 
@@ -90,7 +86,6 @@ class MainPresenter(//private Activity currentActivity;
 
     inner class TimerController(private val mainPresenter: MainPresenter) : TimerTask() {
         override fun run() {
-            // Runnable() - run().
             currentActivity.runOnUiThread { locationAccesser.moveCurrentLocation(mainPresenter) }
         }
     }
@@ -102,7 +97,6 @@ class MainPresenter(//private Activity currentActivity;
     }
 
     fun stopLoadingCsvData() {
-        // Runnable() - run().
         currentActivity.runOnUiThread {
             isLoadingCanceled = true
             // hide loading dialog.
@@ -147,15 +141,17 @@ class MainPresenter(//private Activity currentActivity;
     }
 
     fun onPaused() {
-        // バックグラウンドでは処理を止める.
+        // TODO: バックグラウンドでは処理を止める.
     }
 
     fun onOptionsItemSelected(itemId: Int): Boolean {
         when (itemId) {
             android.R.id.home ->{
-                val transaction = currentActivity?.supportFragmentManager?.beginTransaction()
+                /*val transaction = currentActivity?.supportFragmentManager?.beginTransaction()
                 transaction?.remove(aboutAppFragment)
-                transaction?.commit()
+                transaction?.commit()*/
+                Log.d("SWT", "Home")
+
                 return true
             }
         }
@@ -172,7 +168,6 @@ class MainPresenter(//private Activity currentActivity;
 
         searchView.queryHint = currentActivity.getString(R.string.searchview_queryhint)
         searchView.imeOptions = EditorInfo.IME_FLAG_NO_EXTRACT_UI
-        // SearchView.OnCloseListener() - onClose().
         searchView.setOnCloseListener {
             suggestList?.visibility = View.INVISIBLE
             false
@@ -230,10 +225,8 @@ class MainPresenter(//private Activity currentActivity;
         }
         toolbar.menu.findItem(R.id.show_about_button).setOnMenuItemClickListener { item ->
             // aboutページの表示.
-            val transaction = currentActivity.supportFragmentManager.beginTransaction()
-            transaction.replace(R.id.main_container, aboutAppFragment)
-            transaction.addToBackStack(null)
-            transaction.commit()
+            val intent = Intent(currentActivity, AboutActivity::class.java)
+            currentActivity.startActivity(intent)
             true
         }
         if(strLastQuery == null){
@@ -257,10 +250,5 @@ class MainPresenter(//private Activity currentActivity;
         locationAccesser.clearMap()
         val dataSearcher = ToiletDataSearcher(currentActivity, this, newQuery)
         dataSearcher.execute()
-    }
-
-    companion object {
-
-        private val aboutAppFragment = AboutAppFragment()
     }
 }

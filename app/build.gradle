@@ -45,6 +45,8 @@ dependencies {
     compile 'com.android.support:design:24.0.0'
     compile 'com.annimon:stream:1.0.5'
     compile 'com.android.support:support-v4:24.0.0'
+    compile 'io.reactivex:rxandroid:1.2.0'
+    compile 'io.reactivex:rxjava:1.1.5'
 
     // App's dependencies, including test
     androidTestCompile 'com.android.support:support-annotations:24.0.0'

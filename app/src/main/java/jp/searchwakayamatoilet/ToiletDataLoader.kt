@@ -20,7 +20,7 @@ import java.util.regex.Pattern
 /**
  * Created by masanori on 2016/01/24.
  */
-class ToiletDataLoader(private val currentActivity: Activity?, private val isExistingDataUsed: Boolean, private val currentPresenter: MainPresenter?, private val strQuery: String) : AsyncTask<Void, Void, Int>() {
+class ToiletDataLoader(private val currentActivity: Activity?, private val isExistingDataUsed: Boolean, private val currentPresenter: MainPresenter?, private var strQuery: String?) : AsyncTask<Void, Void, Int>() {
 
     private val dbAccesser: DatabaseAccesser
     private val sqlite: SQLiteDatabase

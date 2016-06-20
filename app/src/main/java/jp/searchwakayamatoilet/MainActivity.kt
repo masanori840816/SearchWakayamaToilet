@@ -1,6 +1,6 @@
 /**
  * Created by Masanori on 2015/12/09.
- * this class is main page activity.
+ * this is main page activity.
  */
 package jp.searchwakayamatoilet
 
@@ -12,7 +12,7 @@ import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.MenuItem
 
-class MainActivity : AppCompatActivity(), AboutAppFragment.OnFragmentInteractionListener {
+class MainActivity : AppCompatActivity() {
 
     lateinit private var presenter: MainPresenter
 
@@ -20,9 +20,10 @@ class MainActivity : AppCompatActivity(), AboutAppFragment.OnFragmentInteraction
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val _lastQuery = savedInstanceState?.getString(getString(R.string.saveinstance_key_last_query))
+        // 最後に入力されていたQueryがあればセット,
+        val lastQuery = savedInstanceState?.getString(getString(R.string.saveinstance_key_last_query))
 
-        presenter = MainPresenter(this, _lastQuery)
+        presenter = MainPresenter(this, lastQuery)
     }
 
     override fun onRequestPermissionsResult(intRequestCode: Int, strPermissions: Array<String>, intGrantResults: IntArray) {
