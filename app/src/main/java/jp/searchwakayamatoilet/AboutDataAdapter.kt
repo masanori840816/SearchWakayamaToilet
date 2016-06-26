@@ -2,25 +2,25 @@ package jp.searchwakayamatoilet
 
 import android.content.Context
 import android.databinding.DataBindingUtil
+import android.text.util.Linkify
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
-import android.widget.TextView
 import jp.searchwakayamatoilet.databinding.AboutListItemBinding
 import java.util.ArrayList
+import java.util.regex.Matcher
+import java.util.regex.Pattern
 
 /**
  * Created by masanori on 2016/06/21.
  */
 class AboutDataAdapter(context: Context, newListItemList: ArrayList<AboutListItem>) : BaseAdapter() {
-    lateinit private var currentContext: Context
     lateinit private var layoutInflater :LayoutInflater
     lateinit private var aboutDataList: ArrayList<AboutListItem>
     init{
-        currentContext = context
-        layoutInflater = currentContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+        layoutInflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         aboutDataList = newListItemList
     }
     override fun getCount(): Int{

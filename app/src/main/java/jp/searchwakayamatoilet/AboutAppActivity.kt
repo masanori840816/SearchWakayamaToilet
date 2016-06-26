@@ -34,15 +34,6 @@ class AboutAppActivity : AppCompatActivity() {
         // hide home button's title.
         supportActionBar?.setDisplayShowTitleEnabled(false)
 
-        // add links to textviews.
- /*       val projectView = findViewById(R.id.about_project_link) as TextView
-        val projectUrlPattern = Pattern.compile(getString(R.string.about_project_link))
-
-        // Linkify.TransformFilter() - String transformUrl(Matcher match, String url).
-        val _projectUrlFilter = { match: Matcher, url: String -> getString(R.string.about_project_url) }
-        Linkify.addLinks(projectView, projectUrlPattern, getString(R.string.about_project_url), null, _projectUrlFilter)
-*/
-
         binding.aboutListview.scrollBarStyle = ListView.SCROLLBARS_OUTSIDE_OVERLAY;
         val aboutDataList: ArrayList<AboutListItem> = ArrayList()
         // 第二引数: 大項目(このアプリについてorCredit)のタイトルがある場合はTrue.
@@ -52,42 +43,42 @@ class AboutAppActivity : AppCompatActivity() {
                 , ""
                 , false
                 , getString(R.string.about_description)
-                , getString(R.string.about_project_link)))
+                , getString(R.string.about_project_url)))
 
         aboutDataList.add(addItem(getString(R.string.about_credits_title)
                 , true
                 , getString(R.string.about_credits_title_toiletmap)
                 , true
                 , getString(R.string.about_credits_toiletmap)
-                , getString(R.string.about_credits_toiletmap_link)))
+                , getString(R.string.about_credits_toiletmap_url)))
 
         aboutDataList.add(addItem(""
                 , false
                 , getString(R.string.about_credits_title_kotlin)
                 , true
                 , getString(R.string.about_credits_kotlin)
-                , getString(R.string.about_credits_kotlin_link)))
+                , getString(R.string.about_credits_kotlin_url)))
 
         aboutDataList.add(addItem(""
                 , false
                 , getString(R.string.about_credits_title_rxjava)
                 , true
                 , getString(R.string.about_credits_rxjava)
-                , getString(R.string.about_credits_rxjava_link)))
+                , getString(R.string.about_credits_rxjava_url)))
 
         aboutDataList.add(addItem(""
                 , false
                 , getString(R.string.about_credits_title_rxandroid)
                 , true
                 , getString(R.string.about_credits_rxandroid)
-                , getString(R.string.about_credits_rxandroid_link)))
+                , getString(R.string.about_credits_rxandroid_url)))
 
         aboutDataList.add(addItem(""
                 , false
                 , getString(R.string.about_credits_title_lightweightstreamapi)
                 , true
                 , getString(R.string.about_credits_lightweightstreamapi)
-                , getString(R.string.about_credits_lightweightstreamapi_link)))
+                , getString(R.string.about_credits_lightweightstreamapi_url)))
 
         val aboutDataAdapter: AboutDataAdapter = AboutDataAdapter(this, aboutDataList)
         binding.aboutListview.adapter = aboutDataAdapter
@@ -105,6 +96,7 @@ class AboutAppActivity : AppCompatActivity() {
                         , description: String, link: String): AboutListItem{
         val newItem = AboutListItem(areaTitle, hasAreaTitle, itemTitle, hasItemTitle
                 , description, link)
+
         return newItem
     }
     private fun setLink(intLinkId: Int, strLinkText: String, strLinkUrl: String) {

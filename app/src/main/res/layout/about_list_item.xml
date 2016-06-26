@@ -19,7 +19,7 @@
         android:text="@{aboutappitemclass.areaTitle}"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textStyle="bold"
-        android:visibility="@{aboutappitemclass.hasAreaTitle? View.VISIBLE: View.INVISIBLE}"/>
+        android:visibility="@{aboutappitemclass.hasAreaTitle? View.VISIBLE: View.GONE}"/>
     <TextView
         android:id="@+id/about_list_item_title"
         android:layout_width="match_parent"
@@ -30,7 +30,7 @@
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:textColor="@android:color/black"
         android:textStyle="bold"
-        android:visibility="@{aboutappitemclass.hasItemTitle? View.VISIBLE: View.INVISIBLE}" />
+        android:visibility="@{aboutappitemclass.hasItemTitle? View.VISIBLE: View.GONE}" />
     <TextView
         android:background="#E5F3FF"
         android:id="@+id/about_list_item_description"
@@ -43,6 +43,7 @@
         android:padding="10dp"
         android:text="@{aboutappitemclass.description}" />
     <TextView
+        android:autoLink="web"
         android:background="#E5F3FF"
         android:id="@+id/about_list_item_link"
         android:layout_width="match_parent"
