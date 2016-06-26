@@ -24,22 +24,22 @@
     <string name="about_credits_toiletmap">このアプリは和歌山県の公開するtoilet-mapのデータを使用しています。このデータはCreative Commons License 表示 2.1のもとでライセンスされています。</string>
     <string name="about_credits_toiletmap_link">toilet-map - Github</string>
     <string name="about_credits_toiletmap_url">https://github.com/wakayama-pref-org/toilet-map</string>
-    <string name="about_credits_title_retrolambda">Gradle Retrolambda Plugin</string>
-    <string name="about_credits_retrolambda">このアプリはGradle Retrolambda Pluginを使用しています。このLibraryはApache License ver.2.0でライセンスされています。</string>
-    <string name="about_credits_retrolambda_link">Retrolambda - Github</string>
-    <string name="about_credits_retrolambda_url">https://github.com/orfjackal/retrolambda</string>
-    <string name="about_credits_title_lightweight_stream_api">Lightweight-Stream-API</string>
-    <string name="about_credits_lightweight_stream_api">このアプリはLightweight-Stream-APIを使用しています。このLibraryはApache License ver.2.0でライセンスされています。</string>
-    <string name="about_credits_lightweight_stream_api_link">Lightweight-Stream-API - Github</string>
-    <string name="about_credits_lightweight_stream_api_url">https://github.com/aNNiMON/Lightweight-Stream-API</string>
-    <string name="about_credits_title_android_retrolambda_lombok">android-retrolambda-lombok</string>
-    <string name="about_credits_android_retrolambda_lombok">このアプリはandroid-retrolambda-lombokを使用しています。このLibraryは以下の規約でライセンスされています。\n\n
-        Copyright © 2010-2011 The Project Lombok Authors.\n\n
-        Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\n\n
-        The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\n
-        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</string>
-    <string name="about_credits_android_retrolambda_lombok_link">android-retrolambda-lombok - Github</string>
-    <string name="about_credits_android_retrolambda_lombok_url">https://github.com/evant/android-retrolambda-lombok</string>
+    <string name="about_credits_title_kotlin">Kotlin Programming Language</string>
+    <string name="about_credits_kotlin">このアプリはKotlinを使用しています。この言語はApache License ver.2.0でライセンスされています。</string>
+    <string name="about_credits_kotlin_link">Kotlin Programming Language - Github</string>
+    <string name="about_credits_kotlin_url">https://github.com/JetBrains/kotlin</string>
+    <string name="about_credits_title_rxjava">RxJava</string>
+    <string name="about_credits_rxjava">このアプリはRxJavaを使用しています。このLibraryはApache License ver.2.0でライセンスされています。</string>
+    <string name="about_credits_rxjava_link">RxJava - Github</string>
+    <string name="about_credits_rxjava_url">https://github.com/ReactiveX/RxJava</string>
+    <string name="about_credits_title_rxandroid">RxAndroid</string>
+    <string name="about_credits_rxandroid">このアプリはRxAndroidを使用しています。このLibraryはApache License ver.2.0でライセンスされています。</string>
+    <string name="about_credits_rxandroid_link">RxAndroid - Github</string>
+    <string name="about_credits_rxandroid_url">https://github.com/ReactiveX/RxAndroid</string>
+    <string name="about_credits_title_lightweightstreamapi">Lightweight-Stream-API</string>
+    <string name="about_credits_lightweightstreamapi">このアプリはLightweight-Stream-APIを使用しています。このLibraryはApache License ver.2.0でライセンスされています。</string>
+    <string name="about_credits_lightweightstreamapi_link">Lightweight-Stream-API - Github</string>
+    <string name="about_credits_lightweightstreamapi_url">https://github.com/aNNiMON/Lightweight-Stream-API</string>
     <string name="error_title">問題が発生しました</string>
     <string name="error_dialog">アプリの実行中に問題が発生しました。以下の内容を開発者にご連絡ください。:\n</string>
 </resources>

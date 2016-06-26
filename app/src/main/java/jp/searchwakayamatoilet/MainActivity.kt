@@ -10,7 +10,6 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 
 import android.util.Log
-import android.view.MenuItem
 
 class MainActivity : AppCompatActivity() {
 
@@ -49,13 +48,6 @@ class MainActivity : AppCompatActivity() {
         // if toilet datas are loading from csv, stop loading.
         presenter.onPaused()
         super.onPause()
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (presenter.onOptionsItemSelected(item.itemId)) {
-            return true
-        }
-        return super.onOptionsItemSelected(item)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

@@ -85,7 +85,7 @@ class MainActivityViewTest {
         onView(ViewMatchers.withId(R.id.about_activity)).check(matches(isDisplayed()))
     }
 
-    @Test
+ /*   @Test
     @Throws(Exception::class)
     fun hasScrollViewOnAboutAppFragment() {
         this.hasAboutAppButtonInMenu()
@@ -128,5 +128,5 @@ class MainActivityViewTest {
         onView(ViewMatchers.withId(R.id.about_credits_title_lightweight_stream_api)).check(matches(isDisplayed()))
         onView(ViewMatchers.withId(R.id.about_credits_lightweight_stream_api)).check(matches(isDisplayed()))
         onView(ViewMatchers.withId(R.id.about_credits_lightweight_stream_api_link)).check(matches(isDisplayed()))
-    }
+    }*/
 }

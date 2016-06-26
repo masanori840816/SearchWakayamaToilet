@@ -144,20 +144,6 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
         // TODO: バックグラウンドでは処理を止める.
     }
 
-    fun onOptionsItemSelected(itemId: Int): Boolean {
-        when (itemId) {
-            android.R.id.home ->{
-                /*val transaction = currentActivity?.supportFragmentManager?.beginTransaction()
-                transaction?.remove(aboutAppFragment)
-                transaction?.commit()*/
-                Log.d("SWT", "Home")
-
-                return true
-            }
-        }
-        return false
-    }
-
     private fun init() {
         val toolbar = currentActivity.findViewById(R.id.toolbar) as Toolbar
         toolbar.inflateMenu(R.menu.menu_main)
@@ -225,7 +211,7 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
         }
         toolbar.menu.findItem(R.id.show_about_button).setOnMenuItemClickListener { item ->
             // aboutページの表示.
-            val intent = Intent(currentActivity, AboutActivity::class.java)
+            val intent = Intent(currentActivity, AboutAppActivity::class.java)
             currentActivity.startActivity(intent)
             true
         }

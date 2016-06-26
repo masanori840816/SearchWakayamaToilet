@@ -1,38 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/about_activity"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context="jp.searchwakayamatoilet.AboutActivity">
-    <ScrollView
-        android:id="@+id/about_scroll_view"
-        android:layout_height="match_parent"
+    tools:context="jp.searchwakayamatoilet.AboutAppActivity">
+    <data>
+        <variable
+            name="aboutappclass"
+            type="jp.searchwakayamatoilet.AboutAppActivity" />
+    </data>
+    <RelativeLayout
+        android:id="@+id/about_activity"
         android:layout_width="match_parent"
-        android:fadingEdge="vertical"
-        android:requiresFadingEdge="vertical"
-        android:background="@android:color/white">
-        <LinearLayout
-            android:id="@+id/about_linear_layout"
+        android:layout_height="match_parent">
+        <ListView
+            android:id="@+id/about_listview"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="60dp"
-            android:orientation="vertical"
-            android:textColor="@android:color/black">
-            <include layout="@layout/layout_about_project"/>
-            <TextView
-                android:id="@+id/about_credits_title"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="10dp"
-                android:text="@string/about_credits_title"
-                android:textAppearance="?android:attr/textAppearanceLarge"
-                android:textStyle="bold"/>
-            <include layout="@layout/layout_about_credit_toiletmap" />
-            <include layout="@layout/layout_about_credit_retrolambda" />
-            <include layout="@layout/layout_about_credit_lightweight_stream_api" />
-            <include layout="@layout/layout_about_credit_android_retrolambda_lombok" />
-        </LinearLayout>
-    </ScrollView>
-    <include layout="@layout/layout_toolbar" />
-</RelativeLayout>
+            android:layout_height="match_parent"
+            android:layout_marginTop="70dp"
+            android:dividerHeight="0dp"/>
+        <include layout="@layout/layout_toolbar" />
+    </RelativeLayout>
+</layout>

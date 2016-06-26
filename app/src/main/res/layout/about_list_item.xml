@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <data>
+        <import type="android.view.View"/>
+        <variable
+            name="aboutappitemclass"
+            type="jp.searchwakayamatoilet.AboutListItem"/>
+    </data>
+<LinearLayout
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <TextView
+        android:id="@+id/about_list_area_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/aboutapp_visible_item_margin"
+        android:text="@{aboutappitemclass.areaTitle}"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textStyle="bold"
+        android:visibility="@{aboutappitemclass.hasAreaTitle? View.VISIBLE: View.INVISIBLE}"/>
+    <TextView
+        android:id="@+id/about_list_item_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/aboutapp_visible_item_margin"
+        android:layout_marginLeft="@dimen/aboutapp_visible_item_margin"
+        android:text="@{aboutappitemclass.itemTitle}"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="@android:color/black"
+        android:textStyle="bold"
+        android:visibility="@{aboutappitemclass.hasItemTitle? View.VISIBLE: View.INVISIBLE}" />
+    <TextView
+        android:background="#E5F3FF"
+        android:id="@+id/about_list_item_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginBottom="0dp"
+        android:padding="10dp"
+        android:text="@{aboutappitemclass.description}" />
+    <TextView
+        android:background="#E5F3FF"
+        android:id="@+id/about_list_item_link"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="0dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginBottom="10dp"
+        android:padding="10dp"
+        android:text="@{aboutappitemclass.link}"/>
+</LinearLayout>
+</layout>
