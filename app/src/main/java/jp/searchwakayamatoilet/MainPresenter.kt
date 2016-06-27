@@ -10,7 +10,6 @@ import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.os.Build
 import android.support.v4.app.FragmentActivity
-import android.support.v4.app.FragmentTransaction
 import android.support.v4.view.MenuItemCompat
 import android.support.v7.widget.SearchView
 import android.support.v7.widget.Toolbar
@@ -20,6 +19,9 @@ import android.view.inputmethod.EditorInfo
 import android.widget.ArrayAdapter
 import android.widget.ListView
 import android.widget.Toast
+import rx.Subscription
+import rx.android.schedulers.AndroidSchedulers
+import rx.subscriptions.CompositeSubscription
 
 import java.util.ArrayList
 
@@ -28,14 +30,16 @@ import java.util.TimerTask
 
 /**
  * Created by masanori on 2016/01/24.
+ * this class for controlling MainPage.
  */
 class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: String?) {
     private val locationAccesser: LocationAccesser
-    private val loadingPanelViewer: LoadingPanelViewer?
+    private val loadingPanelViewer: LoadingPanelViewer
     private var dataLoader: ToiletDataLoader? = null
     private var isLoadingCanceled: Boolean = false
 
     private val timeController: TimerController
+    private var compositeSubscription: CompositeSubscription? = null
 
     private var suggestList: ListView? = null
     var strLastQuery: String? = null
@@ -46,7 +50,7 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
         timeController = TimerController(this)
         locationAccesser = LocationAccesser(
                 currentActivity.getSystemService(Context.LOCATION_SERVICE) as LocationManager, currentActivity as Activity)
-        loadingPanelViewer = LoadingPanelViewer(currentActivity, this)
+        loadingPanelViewer = LoadingPanelViewer(currentActivity)
 
         strLastQuery = lastQuery
         init()
@@ -92,7 +96,7 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
 
     fun startLoadingCsvData() {
         currentActivity.runOnUiThread { // show loading dialog.
-            loadingPanelViewer!!.show()
+            loadingPanelViewer.show()
         }
     }
 
@@ -100,7 +104,7 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
         currentActivity.runOnUiThread {
             isLoadingCanceled = true
             // hide loading dialog.
-            loadingPanelViewer?.hide()
+            loadingPanelViewer.hide()
             dataLoader?.stopLoading()
             dataLoader?.cancel(true)
         }
@@ -125,7 +129,10 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
 
     fun showToast(messageNum: Int) {
         // Runnable() - run().
-        currentActivity.runOnUiThread { Toast.makeText(currentActivity, messageNum, Toast.LENGTH_SHORT).show() }
+        currentActivity.runOnUiThread {
+            Toast.makeText(currentActivity, messageNum, Toast.LENGTH_SHORT)
+                    .show()
+        }
     }
 
     fun showErrorDialog(errorMessage: String?) {
@@ -139,9 +146,20 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
             alert.show()
         }
     }
-
+    fun onResume(){
+        val subscription: Subscription = RxBusProvider.getInstance()
+                .toObserverable()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe {
+                    if(it is LoadingPanelViewer.LoadinPanelEvent){
+                        Log.d("SWT", "LoadCancel")
+                        stopLoadingCsvData()
+                    }
+                }
+        compositeSubscription = CompositeSubscription(subscription)
+    }
     fun onPaused() {
-        // TODO: バックグラウンドでは処理を止める.
+        compositeSubscription?.unsubscribe()
     }
 
     private fun init() {

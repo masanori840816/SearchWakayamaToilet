@@ -2,7 +2,6 @@ package jp.searchwakayamatoilet
 
 import android.app.Activity
 import android.content.Context
-import android.content.res.AssetManager
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteException
 import android.os.AsyncTask
@@ -12,7 +11,6 @@ import com.annimon.stream.Stream
 
 import java.io.BufferedReader
 import java.io.IOException
-import java.io.InputStream
 import java.io.InputStreamReader
 import java.util.ArrayList
 import java.util.regex.Pattern
@@ -20,7 +18,8 @@ import java.util.regex.Pattern
 /**
  * Created by masanori on 2016/01/24.
  */
-class ToiletDataLoader(private val currentActivity: Activity?, private val isExistingDataUsed: Boolean, private val currentPresenter: MainPresenter?, private var strQuery: String?) : AsyncTask<Void, Void, Int>() {
+class ToiletDataLoader(private val currentActivity: Activity, private val isExistingDataUsed: Boolean
+                       , private val currentPresenter: MainPresenter, private var strQuery: String?) : AsyncTask<Void, Void, Int>() {
 
     private val dbAccesser: DatabaseAccesser
     private val sqlite: SQLiteDatabase
@@ -28,7 +27,6 @@ class ToiletDataLoader(private val currentActivity: Activity?, private val isExi
     private var isLoadingCancelled: Boolean = false
 
     init {
-
         dbAccesser = DatabaseAccesser(currentActivity as Context)
         sqlite = dbAccesser.writableDatabase
         isLoadingCancelled = false
@@ -47,19 +45,19 @@ class ToiletDataLoader(private val currentActivity: Activity?, private val isExi
         if (isExistingDataUsed
                 && aryToiletInfo.size > 0) {
             // Add marker on UI Thread.
-            currentPresenter?.addMarker(aryToiletInfo)
+            currentPresenter.addMarker(aryToiletInfo)
         } else {
             // Runnable() - run().
-            currentPresenter?.startLoadingCsvData()
+            currentPresenter.startLoadingCsvData()
 
-            val asmAsset = currentActivity?.resources?.assets
+            val asmAsset = currentActivity.resources?.assets
             try {
                 // CSVの読み込み.
                 val ipsInput = asmAsset?.open("toilet-map-edited.csv")
                 val inputStreamReader = InputStreamReader(ipsInput)
                 val bufferReader = BufferedReader(inputStreamReader)
                 var strLine: String? = ""
-                var strSplited: Array<String>
+                var strSplited: Array<String>?
                 val patternNum = Pattern.compile("^[0-9]+")
 
                 val aryLoadedToiletInfo = ArrayList<DatabaseAccesser.ToiletInfoModel>()
@@ -89,7 +87,7 @@ class ToiletDataLoader(private val currentActivity: Activity?, private val isExi
 
                     if (strSplited.size >= 8) {
                         // 0:No, 1:名称, 2:市町村名, 3:住所, 4: 緯度, 5:経度, 6:利用時間, 7: 多目的トイレの有無.
-                        var _toiletInfoModel: DatabaseAccesser.ToiletInfoModel? = DatabaseAccesser.ToiletInfoModel(
+                        var toiletInfoModel: DatabaseAccesser.ToiletInfoModel? = DatabaseAccesser.ToiletInfoModel(
                                 toiletName = strSplited[1]
                                 // 都道府県は和歌山固定.
                                 , district = "和歌山"
@@ -100,11 +98,11 @@ class ToiletDataLoader(private val currentActivity: Activity?, private val isExi
                                 , availableTime = strSplited[6]
                                 , hasMultiPurposeToilet = java.lang.Boolean.valueOf(strSplited[7]))
 
-                        if(_toiletInfoModel != null){
-                            aryLoadedToiletInfo.add(_toiletInfoModel)
+                        if(toiletInfoModel != null){
+                            aryLoadedToiletInfo.add(toiletInfoModel)
 
-                            val _toiletName = _toiletInfoModel.toiletName
-                            val _toiletAddress = _toiletInfoModel.address
+                            val _toiletName = toiletInfoModel.toiletName
+                            val _toiletAddress = toiletInfoModel.address
                             val lngCount = Stream.of(aryToiletInfo).filter {
                                     toiletInfo ->
                                         toiletInfo.toiletName == _toiletName && toiletInfo.address == _toiletAddress
@@ -118,9 +116,9 @@ class ToiletDataLoader(private val currentActivity: Activity?, private val isExi
                                 }
 
                                 // if there is no same data, insert as new one.
-                                dbAccesser.insertInfo(sqlite, _toiletInfoModel)
+                                dbAccesser.insertInfo(sqlite, toiletInfoModel)
                             }
-                            _toiletInfoModel = null
+                            toiletInfoModel = null
                         }
                     }
                 }
@@ -134,14 +132,14 @@ class ToiletDataLoader(private val currentActivity: Activity?, private val isExi
                 ipsInput?.close()
 
                 // Add marker on UI Thread.
-                currentPresenter?.addMarker(aryLoadedToiletInfo)
+                currentPresenter.addMarker(aryLoadedToiletInfo)
 
-                currentPresenter?.stopLoadingCsvData()
+                currentPresenter.stopLoadingCsvData()
 
             } catch (ex: IOException) {
-                currentPresenter?.showErrorDialog(ex.message)
+                currentPresenter.showErrorDialog(ex.message)
             } catch (ex: SQLiteException) {
-                currentPresenter?.showErrorDialog(ex.message)
+                currentPresenter.showErrorDialog(ex.message)
             }
 
         }

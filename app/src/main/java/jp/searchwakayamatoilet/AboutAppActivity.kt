@@ -14,9 +14,7 @@ import android.view.MenuItem
 import android.widget.ListView
 import android.widget.TextView
 import jp.searchwakayamatoilet.databinding.ActivityAboutBinding
-//import kotlinx.android.synthetic.main.activity_about.*
-//import kotlinx.android.synthetic.main.layout_about_credit_toiletmap.*
-import java.util.*
+import java.util.ArrayList
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
@@ -24,7 +22,6 @@ class AboutAppActivity : AppCompatActivity() {
     lateinit private var binding: ActivityAboutBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //setContentView(R.layout.activity_about)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_about)
         val toolbar = findViewById(R.id.toolbar) as Toolbar
         setSupportActionBar(toolbar)

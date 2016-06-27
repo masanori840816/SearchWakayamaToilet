@@ -10,8 +10,6 @@ import android.view.ViewGroup
 import android.widget.BaseAdapter
 import jp.searchwakayamatoilet.databinding.AboutListItemBinding
 import java.util.ArrayList
-import java.util.regex.Matcher
-import java.util.regex.Pattern
 
 /**
  * Created by masanori on 2016/06/21.

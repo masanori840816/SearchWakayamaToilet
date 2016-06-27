@@ -43,13 +43,15 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-
-    public override fun onPause() {
+    override fun onPause() {
         // if toilet datas are loading from csv, stop loading.
         presenter.onPaused()
         super.onPause()
     }
-
+    override fun onResume(){
+        presenter.onResume()
+        super.onResume()
+    }
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putString(getString(R.string.saveinstance_key_last_query), presenter.strLastQuery)
