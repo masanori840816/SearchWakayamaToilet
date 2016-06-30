@@ -2,4 +2,5 @@
 <resources>
     <color name="color_white">#ffffff</color>
     <color name="color_skyblue">#9FD9F6</color>
+    <color name="color_searchview">#AFEAF6</color>
 </resources>

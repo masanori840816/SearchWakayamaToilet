@@ -31,13 +31,10 @@ class AboutDataAdapter(context: Context, newListItemList: ArrayList<AboutListIte
         return position.toLong()
     }
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View? {
-        if(convertView == null){
-            val binding: AboutListItemBinding = DataBindingUtil.inflate(layoutInflater, R.layout.about_list_item, parent, false)
+        val binding: AboutListItemBinding = DataBindingUtil.inflate(layoutInflater, R.layout.about_list_item, parent, false)
 
-            binding.aboutappitemclass = aboutDataList.get(position)
+        binding.aboutappitemclass = aboutDataList.get(position)
 
-            return binding.root
-        }
-        return convertView
+        return binding.root
     }
 }

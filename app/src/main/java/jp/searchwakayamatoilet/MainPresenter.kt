@@ -10,6 +10,7 @@ import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.os.Build
 import android.support.v4.app.FragmentActivity
+import android.support.v4.content.ContextCompat
 import android.support.v4.view.MenuItemCompat
 import android.support.v7.widget.SearchView
 import android.support.v7.widget.Toolbar
@@ -32,7 +33,7 @@ import java.util.TimerTask
  * Created by masanori on 2016/01/24.
  * this class for controlling MainPage.
  */
-class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: String?) {
+class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: String) {
     private val locationAccesser: LocationAccesser
     private val loadingPanelViewer: LoadingPanelViewer
     private var dataLoader: ToiletDataLoader? = null
@@ -42,8 +43,7 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
     private var compositeSubscription: CompositeSubscription? = null
 
     private var suggestList: ListView? = null
-    var strLastQuery: String? = null
-        private set
+    var strLastQuery: String
 
     init {
 
@@ -82,7 +82,7 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
         dataLoader?.execute()
     }
 
-    fun moveCurrentLocation() {
+    private fun moveCurrentLocation() {
         // GPSをONにした直後は値が取れない場合があるのでTimerで1秒待つ.
         val tmrGettingLocationTimer = Timer()
         tmrGettingLocationTimer.schedule(timeController, 1000L)
@@ -152,7 +152,6 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe {
                     if(it is LoadingPanelViewer.LoadinPanelEvent){
-                        Log.d("SWT", "LoadCancel")
                         stopLoadingCsvData()
                     }
                 }
@@ -160,6 +159,15 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
     }
     fun onPaused() {
         compositeSubscription?.unsubscribe()
+    }
+    fun onActivityResult(requestCode: Int, resultCode: Int){
+        when (requestCode) {
+            locationAccesser.getRequestGpsEnable() ->
+                if (resultCode == Activity.RESULT_OK) {
+                    // get location data.
+                    moveCurrentLocation()
+                }
+        }
     }
 
     private fun init() {
@@ -172,6 +180,13 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
 
         searchView.queryHint = currentActivity.getString(R.string.searchview_queryhint)
         searchView.imeOptions = EditorInfo.IME_FLAG_NO_EXTRACT_UI
+        searchView.setIconifiedByDefault(true)
+
+        // TODO: search_plateの取得方法修正.
+        //val searchPlateId = currentActivity.resources.getIdentifier("android:id/search_plate", null, null)
+        val searchPlate = searchView.findViewById(android.support.v7.appcompat.R.id.search_plate)
+        searchPlate?.setBackgroundColor(ContextCompat.getColor(currentActivity, android.R.color.transparent))
+
         searchView.setOnCloseListener {
             suggestList?.visibility = View.INVISIBLE
             false
@@ -233,17 +248,14 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
             currentActivity.startActivity(intent)
             true
         }
-        if(strLastQuery == null){
-            strLastQuery = ""
-        }
-        getMap(strLastQuery!!)
+        getMap(strLastQuery)
     }
 
     private fun getMap(newQuery: String) {
         strLastQuery = newQuery
         // Android6.0以降なら権限確認.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            this.requestPermissions()
+            requestPermissions()
         } else {
             locationAccesser.getGoogleMap(currentActivity, this, strLastQuery)
         }

@@ -33,12 +33,15 @@ class LocationAccesser(private val locationManager: LocationManager, private val
     private var map: GoogleMap? = null
     private var apiClient: GoogleApiClient? = null
     private val locationAccesser: LocationAccesser
+    private final val RequestGpsEnable = 2
 
     init {
         locationAccesser = this
     }
-
-    fun getGoogleMap(fragmentActivity: FragmentActivity, presenter: MainPresenter, newQuery: String?) {
+    fun getRequestGpsEnable(): Int{
+        return RequestGpsEnable
+    }
+    fun getGoogleMap(fragmentActivity: FragmentActivity, presenter: MainPresenter, newQuery: String) {
         // get GoogleMap instance.
         if (map != null) {
             return
@@ -51,7 +54,6 @@ class LocationAccesser(private val locationManager: LocationManager, private val
                 map?.setInfoWindowAdapter(ToiletInfoWindowViewer(fragmentActivity))
                 // 和歌山県庁に移動.
                 map?.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(34.22501, 135.1678), 9f))
-                // GoogleMap.OnMyLocationButtonClickListener - onMyLocationButtonClick().
                 map?.setOnMyLocationButtonClickListener {
                     locationAccesser.moveToMyLocation(fragmentActivity, presenter)
                     false
@@ -129,7 +131,7 @@ class LocationAccesser(private val locationManager: LocationManager, private val
                 LocationSettingsStatusCodes.RESOLUTION_REQUIRED -> try {
                     // GPSがOffならIntent表示. onActivityResultで結果取得.
                     status.startResolutionForResult(
-                            activity, R.string.request_enable_location)
+                            activity, RequestGpsEnable)
                 } catch (ex: IntentSender.SendIntentException) {
                     presenter.showErrorDialog(ex.message)
                 }

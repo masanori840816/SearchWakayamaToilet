@@ -4,11 +4,12 @@
     <string name="action_search">Search</string>
     <string name="action_update">Update</string>
     <string name="action_about">About</string>
-    <string name="google_maps_key">AIzaSyDSjoIcWmuvrI71BhWwk4KyU6iQxhqWM4g</string>
+    <string name="google_maps_key">AIzaSyD4CO-Lfm3PYWjHNnN1kdXxZI3iWSroHgk</string>
+    <string name="google_maps_key_beta">AIzaSyC16Z3iyvo5_idmC4mbdPkzt09-tRucjb0</string>
     <string name="toast_failed_getting_location">位置情報の取得に失敗しました\nもう一度ボタンを押してください</string>
     <string name="toast_no_networks">機能を使用するためにはネットワークを有効にしてください</string>
     <string name="saveinstance_key_last_query">LAST_QUERY</string>
-    <string name="request_enable_location">2</string>
+
     <string name="request_permission">1</string>
     <string name="searchview_queryhint">名称や住所から検索</string>
     <string name="suggest_search_all">すべて表示</string>

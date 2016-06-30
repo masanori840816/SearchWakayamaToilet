@@ -20,9 +20,13 @@ import java.util.regex.Pattern
 
 class AboutAppActivity : AppCompatActivity() {
     lateinit private var binding: ActivityAboutBinding
+    private var homeId = -1
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_about)
+        // ToolbarのHomeボタンを押した時のItemID.
+        homeId = resources.getIdentifier("android:id/home", null, null)
+
         val toolbar = findViewById(R.id.toolbar) as Toolbar
         setSupportActionBar(toolbar)
 
@@ -35,71 +39,64 @@ class AboutAppActivity : AppCompatActivity() {
         val aboutDataList: ArrayList<AboutListItem> = ArrayList()
         // 第二引数: 大項目(このアプリについてorCredit)のタイトルがある場合はTrue.
         // 第四引数: 小項目(Creditの各項目名)のタイトルがある場合はTrue.
-        aboutDataList.add(addItem(getString(R.string.about_title)
+        aboutDataList.add(getItem(getString(R.string.about_title)
                 , true
                 , ""
                 , false
                 , getString(R.string.about_description)
                 , getString(R.string.about_project_url)))
 
-        aboutDataList.add(addItem(getString(R.string.about_credits_title)
+        aboutDataList.add(getItem(getString(R.string.about_credits_title)
                 , true
                 , getString(R.string.about_credits_title_toiletmap)
                 , true
                 , getString(R.string.about_credits_toiletmap)
                 , getString(R.string.about_credits_toiletmap_url)))
 
-        aboutDataList.add(addItem(""
+        aboutDataList.add(getItem(""
                 , false
                 , getString(R.string.about_credits_title_kotlin)
                 , true
                 , getString(R.string.about_credits_kotlin)
                 , getString(R.string.about_credits_kotlin_url)))
 
-        aboutDataList.add(addItem(""
+        aboutDataList.add(getItem(""
                 , false
                 , getString(R.string.about_credits_title_rxjava)
                 , true
                 , getString(R.string.about_credits_rxjava)
                 , getString(R.string.about_credits_rxjava_url)))
 
-        aboutDataList.add(addItem(""
+        aboutDataList.add(getItem(""
                 , false
                 , getString(R.string.about_credits_title_rxandroid)
                 , true
                 , getString(R.string.about_credits_rxandroid)
                 , getString(R.string.about_credits_rxandroid_url)))
 
-        aboutDataList.add(addItem(""
+        aboutDataList.add(getItem(""
                 , false
                 , getString(R.string.about_credits_title_lightweightstreamapi)
                 , true
                 , getString(R.string.about_credits_lightweightstreamapi)
                 , getString(R.string.about_credits_lightweightstreamapi_url)))
 
-        val aboutDataAdapter: AboutDataAdapter = AboutDataAdapter(this, aboutDataList)
-        binding.aboutListview.adapter = aboutDataAdapter
+        binding.aboutListview.adapter = AboutDataAdapter(this, aboutDataList)
     }
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            android.R.id.home ->{
+            homeId ->{
                 finish()
                 return true
             }
         }
         return super.onOptionsItemSelected(item)
     }
-    private fun addItem(areaTitle: String, hasAreaTitle: Boolean, itemTitle: String, hasItemTitle: Boolean
+    private fun getItem(areaTitle: String, hasAreaTitle: Boolean, itemTitle: String, hasItemTitle: Boolean
                         , description: String, link: String): AboutListItem{
         val newItem = AboutListItem(areaTitle, hasAreaTitle, itemTitle, hasItemTitle
                 , description, link)
 
         return newItem
-    }
-    private fun setLink(intLinkId: Int, strLinkText: String, strLinkUrl: String) {
-        val textView = findViewById(intLinkId) as TextView
-        val pattern = Pattern.compile(strLinkText)
-        val urlFilter = { match: Matcher, url: String -> strLinkUrl }
-        Linkify.addLinks(textView, pattern, strLinkUrl, null, urlFilter)
     }
 }
