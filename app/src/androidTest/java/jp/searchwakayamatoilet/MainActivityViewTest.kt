@@ -6,6 +6,7 @@
 package jp.searchwakayamatoilet
 
 import android.support.test.InstrumentationRegistry
+import android.support.test.espresso.Espresso
 import android.support.test.espresso.action.ViewActions
 import android.support.test.espresso.matcher.ViewMatchers
 import android.support.test.rule.ActivityTestRule
@@ -36,8 +37,8 @@ import org.mockito.Mockito.spy
 @LargeTest
 class MainActivityViewTest {
 
-    @Rule
-    var mainActivityRule: ActivityTestRule<MainActivity> = ActivityTestRule(MainActivity::class.java)
+    @Rule @JvmField
+    val mainActivityRule = ActivityTestRule(MainActivity::class.java)
 
     @Before
     @Throws(Exception::class)
@@ -47,51 +48,51 @@ class MainActivityViewTest {
     @Test
     @Throws(Exception::class)
     fun hasToolbar() {
-        onView(ViewMatchers.withId(R.id.toolbar)).check(matches(isDisplayed()))
+        Espresso.onView(ViewMatchers.withId(R.id.toolbar)).check(matches(isDisplayed()))
     }
 
     @Test
     @Throws(Exception::class)
     fun hasSearchView() {
-        onView(ViewMatchers.withId(R.id.searchview)).check(matches(isDisplayed()))
+        Espresso.onView(ViewMatchers.withId(R.id.searchview)).check(matches(isDisplayed()))
     }
 
     @Test
     @Throws(Exception::class)
     fun hasEditTextOnSearchView() {
-        onView(ViewMatchers.withId(R.id.searchview)).perform(ViewActions.click())
-        onView(ViewMatchers.isAssignableFrom(EditText::class.java)).perform(ViewActions.typeText("test"), ViewActions.pressKey(66))
+        Espresso.onView(ViewMatchers.withId(R.id.searchview)).perform(ViewActions.click())
+        Espresso.onView(ViewMatchers.isAssignableFrom(EditText::class.java)).perform(ViewActions.typeText("test"), ViewActions.pressKey(66))
     }
 
     @Test
     @Throws(Exception::class)
     fun isSuggestSearchAllShown() {
-        onView(ViewMatchers.withId(R.id.searchview)).perform(ViewActions.click())
-        onView(ViewMatchers.isAssignableFrom(EditText::class.java)).perform(ViewActions.typeText(" "), ViewActions.replaceText(""))
-        onView(ViewMatchers.withId(R.id.suggest_list)).check(matches(isDisplayed()))
+        Espresso.onView(ViewMatchers.withId(R.id.searchview)).perform(ViewActions.click())
+        Espresso.onView(ViewMatchers.isAssignableFrom(EditText::class.java)).perform(ViewActions.typeText(" "), ViewActions.replaceText(""))
+        Espresso.onView(ViewMatchers.withId(R.id.suggest_list)).check(matches(isDisplayed()))
     }
 
     @Test
     @Throws(Exception::class)
     fun hasAboutAppButtonInMenu() {
-        openActionBarOverflowOrOptionsMenu(InstrumentationRegistry.getTargetContext())
-        onView(ViewMatchers.withText(R.string.action_about)).perform(ViewActions.click())
+        Espresso.openActionBarOverflowOrOptionsMenu(InstrumentationRegistry.getTargetContext())
+        Espresso.onView(ViewMatchers.withText(R.string.action_about)).perform(ViewActions.click())
     }
 
     @Test
     @Throws(Exception::class)
     fun isAboutFragmentShown() {
-        this.hasAboutAppButtonInMenu()
-        onView(ViewMatchers.withId(R.id.about_activity)).check(matches(isDisplayed()))
+        hasAboutAppButtonInMenu()
+        Espresso.onView(ViewMatchers.withId(R.id.about_activity)).check(matches(isDisplayed()))
     }
 
- /*   @Test
+    @Test
     @Throws(Exception::class)
     fun hasScrollViewOnAboutAppFragment() {
         this.hasAboutAppButtonInMenu()
-        onView(ViewMatchers.withId(R.id.about_scroll_view)).check(matches(isDisplayed()))
+        Espresso.onView(ViewMatchers.withId(R.id.about_listview)).check(matches(isDisplayed()))
     }
-
+/*
     @Test
     @Throws(Exception::class)
     fun hasAboutProjectViewOnAboutAppFragment() {

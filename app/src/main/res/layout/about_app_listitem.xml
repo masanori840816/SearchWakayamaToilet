@@ -4,7 +4,7 @@
         <import type="android.view.View"/>
         <variable
             name="aboutappitemclass"
-            type="jp.searchwakayamatoilet.AboutListItem"/>
+            type="jp.searchwakayamatoilet.AboutAppListItem"/>
     </data>
 <LinearLayout
     android:orientation="vertical"

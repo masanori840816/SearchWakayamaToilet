@@ -12,15 +12,6 @@ import android.view.KeyEvent
  * for showing loading indicator.
  */
 class LoadingPanelViewer(context: Context) {
-    inner class LoadinPanelEvent(willLoadingCsvBeStopped: Boolean){
-        private var isLoadingCsvStopped: Boolean
-        init{
-            isLoadingCsvStopped = willLoadingCsvBeStopped
-        }
-        fun getIsLoadingCsvStopped(): Boolean{
-            return isLoadingCsvStopped
-        }
-    }
     private val progressDialog: ProgressDialog
 
     init {
@@ -29,7 +20,7 @@ class LoadingPanelViewer(context: Context) {
         progressDialog.setOnKeyListener{
             dialog: DialogInterface, keyCode: Int, event: KeyEvent ->
                 if (keyCode == KeyEvent.KEYCODE_BACK) {
-                    RxBusProvider.getInstance().send(LoadinPanelEvent(true))
+                    RxBusProvider.getInstance().send(LoadingPanelEvent(true))
                 }
                 false
         }

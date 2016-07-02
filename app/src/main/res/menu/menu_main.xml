@@ -5,7 +5,7 @@
         android:icon="@mipmap/ic_search_black_48dp"
         android:imeOptions="flagNoExtractUi"
         app:showAsAction="ifRoom"
-        app:actionViewClass="android.support.v7.widget.SearchView"
+        app:actionViewClass="android.widget.SearchView"
         />
     <item android:id="@+id/update_button"
         android:title="@string/action_update"

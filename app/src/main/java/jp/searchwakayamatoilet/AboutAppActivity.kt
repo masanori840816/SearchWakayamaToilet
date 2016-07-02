@@ -23,6 +23,7 @@ class AboutAppActivity : AppCompatActivity() {
     private var homeId = -1
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         binding = DataBindingUtil.setContentView(this, R.layout.activity_about)
         // ToolbarのHomeボタンを押した時のItemID.
         homeId = resources.getIdentifier("android:id/home", null, null)
@@ -36,7 +37,7 @@ class AboutAppActivity : AppCompatActivity() {
         supportActionBar?.setDisplayShowTitleEnabled(false)
 
         binding.aboutListview.scrollBarStyle = ListView.SCROLLBARS_OUTSIDE_OVERLAY;
-        val aboutDataList: ArrayList<AboutListItem> = ArrayList()
+        val aboutDataList: ArrayList<AboutAppListItem> = ArrayList()
         // 第二引数: 大項目(このアプリについてorCredit)のタイトルがある場合はTrue.
         // 第四引数: 小項目(Creditの各項目名)のタイトルがある場合はTrue.
         aboutDataList.add(getItem(getString(R.string.about_title)
@@ -81,7 +82,7 @@ class AboutAppActivity : AppCompatActivity() {
                 , getString(R.string.about_credits_lightweightstreamapi)
                 , getString(R.string.about_credits_lightweightstreamapi_url)))
 
-        binding.aboutListview.adapter = AboutDataAdapter(this, aboutDataList)
+        binding.aboutListview.adapter = AboutAppDataAdapter(this, aboutDataList)
     }
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
@@ -93,8 +94,8 @@ class AboutAppActivity : AppCompatActivity() {
         return super.onOptionsItemSelected(item)
     }
     private fun getItem(areaTitle: String, hasAreaTitle: Boolean, itemTitle: String, hasItemTitle: Boolean
-                        , description: String, link: String): AboutListItem{
-        val newItem = AboutListItem(areaTitle, hasAreaTitle, itemTitle, hasItemTitle
+                        , description: String, link: String): AboutAppListItem {
+        val newItem = AboutAppListItem(areaTitle, hasAreaTitle, itemTitle, hasItemTitle
                 , description, link)
 
         return newItem

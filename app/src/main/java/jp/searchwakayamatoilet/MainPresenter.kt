@@ -4,15 +4,16 @@ import android.Manifest
 import android.annotation.TargetApi
 import android.app.Activity
 import android.app.AlertDialog
+import android.app.SearchManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.os.Build
 import android.support.v4.app.FragmentActivity
-import android.support.v4.content.ContextCompat
 import android.support.v4.view.MenuItemCompat
-import android.support.v7.widget.SearchView
+import android.widget.SearchView
+
 import android.support.v7.widget.Toolbar
 import android.util.Log
 import android.view.View
@@ -100,17 +101,6 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
         }
     }
 
-    fun stopLoadingCsvData() {
-        currentActivity.runOnUiThread {
-            isLoadingCanceled = true
-            // hide loading dialog.
-            loadingPanelViewer.hide()
-            dataLoader?.stopLoading()
-            dataLoader?.cancel(true)
-        }
-
-    }
-
     fun addMarker(toiletInfoModelList: ArrayList<DatabaseAccesser.ToiletInfoModel>) {
         currentActivity.runOnUiThread {
             for (toiletInfo in toiletInfoModelList) {
@@ -136,12 +126,10 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
     }
 
     fun showErrorDialog(errorMessage: String?) {
-        // Runnable() - run().
         currentActivity.runOnUiThread {
             val alert = AlertDialog.Builder(currentActivity)
             alert.setTitle(currentActivity.getString(R.string.error_title))
             alert.setMessage(currentActivity.getString(R.string.error_dialog) + errorMessage)
-            // DialogInterface.OnClickListener() - onClick(DialogInterface dialog, int which).
             alert.setPositiveButton(currentActivity.getString(android.R.string.ok), null)
             alert.show()
         }
@@ -151,7 +139,7 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
                 .toObserverable()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe {
-                    if(it is LoadingPanelViewer.LoadinPanelEvent){
+                    if(it is LoadingPanelEvent){
                         stopLoadingCsvData()
                     }
                 }
@@ -174,18 +162,19 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
         val toolbar = currentActivity.findViewById(R.id.toolbar) as Toolbar
         toolbar.inflateMenu(R.menu.menu_main)
 
-        val searchView = MenuItemCompat.getActionView(toolbar.menu.findItem(R.id.searchview)) as SearchView
+        val searchManager = currentActivity.getSystemService(Context.SEARCH_SERVICE) as SearchManager
+        val searchItem = toolbar.menu.findItem(R.id.searchview)
+        val searchView = MenuItemCompat.getActionView(searchItem) as SearchView
+        searchView.setSearchableInfo(searchManager.getSearchableInfo(currentActivity.componentName))
+
+        MenuItemCompat.setActionView(searchItem, searchView)
+
         // hide Submit button.
         searchView.isSubmitButtonEnabled = false
 
         searchView.queryHint = currentActivity.getString(R.string.searchview_queryhint)
         searchView.imeOptions = EditorInfo.IME_FLAG_NO_EXTRACT_UI
         searchView.setIconifiedByDefault(true)
-
-        // TODO: search_plateの取得方法修正.
-        //val searchPlateId = currentActivity.resources.getIdentifier("android:id/search_plate", null, null)
-        val searchPlate = searchView.findViewById(android.support.v7.appcompat.R.id.search_plate)
-        searchPlate?.setBackgroundColor(ContextCompat.getColor(currentActivity, android.R.color.transparent))
 
         searchView.setOnCloseListener {
             suggestList?.visibility = View.INVISIBLE
@@ -203,7 +192,7 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
 
             override fun onQueryTextChange(newText: String): Boolean {
                 // if the textarea empty, show suggest items.
-                if (newText == "") {
+                if (newText.isEmpty()) {
                     if (searchView.isShown) {
                         suggestList?.visibility = View.VISIBLE
                     }
@@ -266,5 +255,15 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
         locationAccesser.clearMap()
         val dataSearcher = ToiletDataSearcher(currentActivity, this, newQuery)
         dataSearcher.execute()
+    }
+    private fun stopLoadingCsvData() {
+        currentActivity.runOnUiThread {
+            isLoadingCanceled = true
+            // hide loading dialog.
+            loadingPanelViewer.hide()
+            dataLoader?.stopLoading()
+            dataLoader?.cancel(true)
+        }
+
     }
 }

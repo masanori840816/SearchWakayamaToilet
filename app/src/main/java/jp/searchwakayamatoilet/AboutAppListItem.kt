@@ -6,15 +6,14 @@ import android.databinding.Bindable
 /**
  * Created by masanori on 2016/06/21.
  */
-class AboutListItem(newAreaTitle: String, newHasAreaTitle: Boolean
-        , newItemTitle: String, newHasItemTitle: Boolean, newDescription: String, newLink: String): BaseObservable(){
+class AboutAppListItem(newAreaTitle: String, newHasAreaTitle: Boolean
+                       , newItemTitle: String, newHasItemTitle: Boolean, newDescription: String, newLink: String): BaseObservable(){
     private var areaTitle = ""
     private var hasAreaTitle = false
     private var itemTitle = ""
     private var hasItemTitle = false
     private var description = ""
     private var link = ""
-
 
     init{
         areaTitle = newAreaTitle

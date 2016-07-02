@@ -47,7 +47,6 @@ class ToiletDataLoader(private val currentActivity: Activity, private val isExis
             // Add marker on UI Thread.
             currentPresenter.addMarker(aryToiletInfo)
         } else {
-            // Runnable() - run().
             currentPresenter.startLoadingCsvData()
 
             val asmAsset = currentActivity.resources?.assets
@@ -101,11 +100,12 @@ class ToiletDataLoader(private val currentActivity: Activity, private val isExis
                         if(toiletInfoModel != null){
                             aryLoadedToiletInfo.add(toiletInfoModel)
 
-                            val _toiletName = toiletInfoModel.toiletName
+                            val toiletName = toiletInfoModel.toiletName
                             val _toiletAddress = toiletInfoModel.address
                             val lngCount = Stream.of(aryToiletInfo).filter {
                                     toiletInfo ->
-                                        toiletInfo.toiletName == _toiletName && toiletInfo.address == _toiletAddress
+                                        toiletInfo.toiletName == toiletName
+                                                && toiletInfo.address == _toiletAddress
                                 }.count()
 
                             if (lngCount <= 0) {
@@ -134,7 +134,7 @@ class ToiletDataLoader(private val currentActivity: Activity, private val isExis
                 // Add marker on UI Thread.
                 currentPresenter.addMarker(aryLoadedToiletInfo)
 
-                currentPresenter.stopLoadingCsvData()
+                RxBusProvider.getInstance().send(LoadingPanelEvent(true))
 
             } catch (ex: IOException) {
                 currentPresenter.showErrorDialog(ex.message)
