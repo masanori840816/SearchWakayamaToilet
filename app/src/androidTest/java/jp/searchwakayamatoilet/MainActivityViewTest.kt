@@ -8,10 +8,10 @@ package jp.searchwakayamatoilet
 import android.support.test.InstrumentationRegistry
 import android.support.test.espresso.Espresso
 import android.support.test.espresso.action.ViewActions
+import android.support.test.espresso.assertion.ViewAssertions.matches
 import android.support.test.espresso.matcher.ViewMatchers
 import android.support.test.rule.ActivityTestRule
 import android.support.test.runner.AndroidJUnit4
-import android.test.suitebuilder.annotation.LargeTest
 import android.widget.EditText
 
 import android.support.test.espresso.Espresso.openActionBarOverflowOrOptionsMenu
@@ -24,17 +24,17 @@ import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 
-import android.support.test.espresso.Espresso.onView
-import android.support.test.espresso.assertion.ViewAssertions.matches
+import android.support.test.espresso.matcher.BoundedMatcher
+import android.support.test.espresso.matcher.PreferenceMatchers
 import android.support.test.espresso.matcher.ViewMatchers.isDisplayed
 import android.support.test.espresso.matcher.ViewMatchers.withText
+import org.hamcrest.Matcher
 
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.spy
 
 @RunWith(AndroidJUnit4::class)
-@LargeTest
 class MainActivityViewTest {
 
     @Rule @JvmField
@@ -83,51 +83,115 @@ class MainActivityViewTest {
     @Throws(Exception::class)
     fun isAboutFragmentShown() {
         hasAboutAppButtonInMenu()
-        Espresso.onView(ViewMatchers.withId(R.id.about_activity)).check(matches(isDisplayed()))
+        Espresso.onView(ViewMatchers.withId(R.id.aboutapp_activity)).check(matches(isDisplayed()))
     }
 
     @Test
     @Throws(Exception::class)
-    fun hasScrollViewOnAboutAppFragment() {
+    fun hasScrollViewOnAboutAppActivity() {
         this.hasAboutAppButtonInMenu()
         Espresso.onView(ViewMatchers.withId(R.id.about_listview)).check(matches(isDisplayed()))
     }
-/*
-    @Test
-    @Throws(Exception::class)
-    fun hasAboutProjectViewOnAboutAppFragment() {
-        this.hasAboutAppButtonInMenu()
-        onView(ViewMatchers.withId(R.id.about_title)).check(matches(isDisplayed()))
-        onView(ViewMatchers.withId(R.id.about_description)).check(matches(isDisplayed()))
-        onView(ViewMatchers.withId(R.id.about_project_link)).check(matches(isDisplayed()))
-    }
 
     @Test
     @Throws(Exception::class)
-    fun hasCreditsToiletmapViewOnAboutAppFragment() {
-        this.hasAboutAppButtonInMenu()
-        onView(ViewMatchers.withId(R.id.about_credits_title_toiletmap)).check(matches(isDisplayed()))
-        onView(ViewMatchers.withId(R.id.about_credits_toiletmap)).check(matches(isDisplayed()))
-        onView(ViewMatchers.withId(R.id.about_credits_toiletmap_link)).check(matches(isDisplayed()))
-    }
+    fun hasAboutProjectViewOnAboutAppActivity() {
+        hasAboutAppButtonInMenu()
+        val context = InstrumentationRegistry.getTargetContext()
 
+        Espresso.onData(getAboutAppListAreaTitle(context.getString(R.string.about_title))).check(matches(isDisplayed()))
+        Espresso.onData(getAboutAppListDescription(context.getString(R.string.about_description))).check(matches(isDisplayed()))
+        Espresso.onData(getAboutAppListLink(context.getString(R.string.about_project_url))).check(matches(isDisplayed()))
+    }
     @Test
     @Throws(Exception::class)
-    fun hasCreaditsRetrolambdaViewOnAboutAppFragment() {
-        this.hasAboutAppButtonInMenu()
-        onView(ViewMatchers.withText(R.string.about_credits_retrolambda)).perform(ViewActions.scrollTo(), ViewActions.click())
-        onView(ViewMatchers.withId(R.id.about_credits_title_retrolambda)).check(matches(isDisplayed()))
-        onView(ViewMatchers.withId(R.id.about_credits_retrolambda)).check(matches(isDisplayed()))
-        onView(ViewMatchers.withId(R.id.about_credits_retrolambda_link)).check(matches(isDisplayed()))
-    }
+    fun hasCreditsToiletmapOnAboutAppActivity() {
+        hasAboutAppButtonInMenu()
 
+        val context = InstrumentationRegistry.getTargetContext()
+        Espresso.onData(getAboutAppListAreaTitle(context.getString(R.string.about_credits_title))).check(matches(isDisplayed()))
+        Espresso.onData(getAboutAppListItemTitle(context.getString(R.string.about_credits_title_toiletmap))).check(matches(isDisplayed()))
+        Espresso.onData(getAboutAppListDescription(context.getString(R.string.about_credits_toiletmap))).check(matches(isDisplayed()))
+        Espresso.onData(getAboutAppListLink(context.getString(R.string.about_credits_toiletmap_url))).check(matches(isDisplayed()))
+    }
     @Test
     @Throws(Exception::class)
-    fun hasCreaditsLightweightStreamApiOnAboutAppFragment() {
-        this.hasAboutAppButtonInMenu()
-        onView(ViewMatchers.withText(R.string.about_credits_retrolambda)).perform(ViewActions.scrollTo(), ViewActions.click())
-        onView(ViewMatchers.withId(R.id.about_credits_title_lightweight_stream_api)).check(matches(isDisplayed()))
-        onView(ViewMatchers.withId(R.id.about_credits_lightweight_stream_api)).check(matches(isDisplayed()))
-        onView(ViewMatchers.withId(R.id.about_credits_lightweight_stream_api_link)).check(matches(isDisplayed()))
-    }*/
+    fun hasCreaditsKotlinOnAboutAppActivity() {
+        hasAboutAppButtonInMenu()
+
+        val context = InstrumentationRegistry.getTargetContext()
+        Espresso.onData(getAboutAppListItemTitle(context.getString(R.string.about_credits_title_kotlin))).check(matches(isDisplayed()))
+        Espresso.onData(getAboutAppListDescription(context.getString(R.string.about_credits_kotlin))).check(matches(isDisplayed()))
+        Espresso.onData(getAboutAppListLink(context.getString(R.string.about_credits_kotlin_url))).check(matches(isDisplayed()))
+    }
+    @Test
+    @Throws(Exception::class)
+    fun hasCreaditsRxJavaOnAboutAppActivity() {
+        hasAboutAppButtonInMenu()
+
+        val context = InstrumentationRegistry.getTargetContext()
+        Espresso.onData(getAboutAppListItemTitle(context.getString(R.string.about_credits_title_rxjava))).check(matches(isDisplayed()))
+        Espresso.onData(getAboutAppListDescription(context.getString(R.string.about_credits_rxjava))).check(matches(isDisplayed()))
+        Espresso.onData(getAboutAppListLink(context.getString(R.string.about_credits_rxjava_url))).check(matches(isDisplayed()))
+    }
+    @Test
+    @Throws(Exception::class)
+    fun hasCreaditsRxAndroidOnAboutAppActivity() {
+        hasAboutAppButtonInMenu()
+
+        val context = InstrumentationRegistry.getTargetContext()
+        Espresso.onData(getAboutAppListItemTitle(context.getString(R.string.about_credits_title_rxandroid))).check(matches(isDisplayed()))
+        Espresso.onData(getAboutAppListDescription(context.getString(R.string.about_credits_rxandroid))).check(matches(isDisplayed()))
+        Espresso.onData(getAboutAppListLink(context.getString(R.string.about_credits_rxandroid_url))).check(matches(isDisplayed()))
+    }
+    @Test
+    @Throws(Exception::class)
+    fun hasCreaditsLightweightStreamApiOnAboutAppActivity() {
+        hasAboutAppButtonInMenu()
+
+        val context = InstrumentationRegistry.getTargetContext()
+        Espresso.onData(getAboutAppListItemTitle(context.getString(R.string.about_credits_title_lightweightstreamapi))).check(matches(isDisplayed()))
+        Espresso.onData(getAboutAppListDescription(context.getString(R.string.about_credits_lightweightstreamapi))).check(matches(isDisplayed()))
+        Espresso.onData(getAboutAppListLink(context.getString(R.string.about_credits_lightweightstreamapi_url))).check(matches(isDisplayed()))
+    }
+    private fun getAboutAppListAreaTitle(itemTitle: String): Matcher<Any> {
+        return object: BoundedMatcher<Any, AboutAppListItem>(AboutAppListItem::class.java) {
+                override fun describeTo(description: org.hamcrest.Description) {
+                    description.appendText("AboutAppListItem with AreaTitle: " + itemTitle)
+                }
+                override fun matchesSafely(aboutAppDataItem: AboutAppListItem): Boolean {
+                    return itemTitle.equals(aboutAppDataItem.getAreaTitle())
+                }
+            }
+    }
+    private fun getAboutAppListItemTitle(itemTitle: String): Matcher<Any> {
+        return object: BoundedMatcher<Any, AboutAppListItem>(AboutAppListItem::class.java) {
+            override fun describeTo(description: org.hamcrest.Description) {
+                description.appendText("AboutAppListItem with ItemTitle: " + itemTitle)
+            }
+            override fun matchesSafely(aboutAppDataItem: AboutAppListItem): Boolean {
+                return itemTitle.equals(aboutAppDataItem.getItemTitle())
+            }
+        }
+    }
+    private fun getAboutAppListDescription(itemTitle: String): Matcher<Any> {
+        return object: BoundedMatcher<Any, AboutAppListItem>(AboutAppListItem::class.java) {
+            override fun describeTo(description: org.hamcrest.Description) {
+                description.appendText("AboutAppListItem with ItemTitle: " + itemTitle)
+            }
+            override fun matchesSafely(aboutAppDataItem: AboutAppListItem): Boolean {
+                return itemTitle.equals(aboutAppDataItem.getDescription())
+            }
+        }
+    }
+    private fun getAboutAppListLink(itemTitle: String): Matcher<Any> {
+        return object: BoundedMatcher<Any, AboutAppListItem>(AboutAppListItem::class.java) {
+            override fun describeTo(description: org.hamcrest.Description) {
+                description.appendText("AboutAppListItem with ItemTitle: " + itemTitle)
+            }
+            override fun matchesSafely(aboutAppDataItem: AboutAppListItem): Boolean {
+                return itemTitle.equals(aboutAppDataItem.getLink())
+            }
+        }
+    }
 }

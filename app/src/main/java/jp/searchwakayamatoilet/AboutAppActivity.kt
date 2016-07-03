@@ -8,23 +8,19 @@ import android.databinding.DataBindingUtil
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.v7.widget.Toolbar
-import android.text.util.Linkify
 import android.util.Log
 import android.view.MenuItem
 import android.widget.ListView
-import android.widget.TextView
-import jp.searchwakayamatoilet.databinding.ActivityAboutBinding
+import jp.searchwakayamatoilet.databinding.ActivityAboutappBinding
 import java.util.ArrayList
-import java.util.regex.Matcher
-import java.util.regex.Pattern
 
 class AboutAppActivity : AppCompatActivity() {
-    lateinit private var binding: ActivityAboutBinding
+    lateinit private var binding: ActivityAboutappBinding
     private var homeId = -1
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        binding = DataBindingUtil.setContentView(this, R.layout.activity_about)
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_aboutapp)
         // ToolbarのHomeボタンを押した時のItemID.
         homeId = resources.getIdentifier("android:id/home", null, null)
 
