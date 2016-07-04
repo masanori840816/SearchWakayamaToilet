@@ -8,13 +8,17 @@ import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 
+import com.google.firebase.analytics.FirebaseAnalytics
+
 class MainActivity : AppCompatActivity() {
 
     lateinit private var presenter: MainPresenter
+    lateinit private var analytics: FirebaseAnalytics
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        analytics = FirebaseAnalytics.getInstance(this)
 
         // 最後に入力されていたQueryがあればセット,
         var lastQuery = savedInstanceState?.getString(getString(R.string.saveinstance_key_last_query))
