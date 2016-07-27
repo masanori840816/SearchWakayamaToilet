@@ -144,16 +144,6 @@ class MainActivityViewTest {
         Espresso.onData(getAboutAppListDescription(context.getString(R.string.about_credits_rxandroid))).check(matches(isDisplayed()))
         Espresso.onData(getAboutAppListLink(context.getString(R.string.about_credits_rxandroid_url))).check(matches(isDisplayed()))
     }
-    @Test
-    @Throws(Exception::class)
-    fun hasCreaditsLightweightStreamApiOnAboutAppActivity() {
-        hasAboutAppButtonInMenu()
-
-        val context = InstrumentationRegistry.getTargetContext()
-        Espresso.onData(getAboutAppListItemTitle(context.getString(R.string.about_credits_title_lightweightstreamapi))).check(matches(isDisplayed()))
-        Espresso.onData(getAboutAppListDescription(context.getString(R.string.about_credits_lightweightstreamapi))).check(matches(isDisplayed()))
-        Espresso.onData(getAboutAppListLink(context.getString(R.string.about_credits_lightweightstreamapi_url))).check(matches(isDisplayed()))
-    }
     private fun getAboutAppListAreaTitle(itemTitle: String): Matcher<Any> {
         return object: BoundedMatcher<Any, AboutAppListItem>(AboutAppListItem::class.java) {
                 override fun describeTo(description: org.hamcrest.Description) {

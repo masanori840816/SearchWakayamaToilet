@@ -71,13 +71,6 @@ class AboutAppActivity : AppCompatActivity() {
                 , getString(R.string.about_credits_rxandroid)
                 , getString(R.string.about_credits_rxandroid_url)))
 
-        aboutDataList.add(getItem(""
-                , false
-                , getString(R.string.about_credits_title_lightweightstreamapi)
-                , true
-                , getString(R.string.about_credits_lightweightstreamapi)
-                , getString(R.string.about_credits_lightweightstreamapi_url)))
-
         binding.aboutListview.adapter = AboutAppDataAdapter(this, aboutDataList)
     }
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

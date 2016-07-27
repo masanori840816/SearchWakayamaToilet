@@ -15,13 +15,13 @@ import android.util.Log
 import java.util.ArrayList
 
 class DatabaseAccesser(context: Context) : SQLiteOpenHelper(context, "toiletinfo.db", null, 3) {
-    data class ToiletInfoModel(var id: Int = 0, var toiletName: String, var district: String
+    data class ToiletInfoClass(var id: Int = 0, var toiletName: String, var district: String
             , var municipality: String, var address: String, var latitude: Double, var longitude: Double
             , var availableTime: String, var hasMultiPurposeToilet: Boolean)
 
     private var strSearchCriteria: String? = null
     private var arySearchParameter: Array<String> = emptyArray()
-    fun insertInfo(db: SQLiteDatabase, toiletInfo: ToiletInfoModel) {
+    fun insertInfo(db: SQLiteDatabase, toiletInfo: ToiletInfoClass) {
 
         // Transactionの開始・終了は呼び出し元で実行.
         val contentValues = ContentValues()
@@ -71,15 +71,15 @@ class DatabaseAccesser(context: Context) : SQLiteOpenHelper(context, "toiletinfo
         strSearchCriteria = _newSearchCriteria.toString()
     }
 
-    fun search(db: SQLiteDatabase): ArrayList<ToiletInfoModel> {
-        val aryToiletInfo = ArrayList<ToiletInfoModel>()
+    fun search(db: SQLiteDatabase): ArrayList<ToiletInfoClass> {
+        val aryToiletInfo = ArrayList<ToiletInfoClass>()
 
         val _cursor = db.query("toiletinfo", null, strSearchCriteria, arySearchParameter, null, null, "id ASC", null)
 
         _cursor.moveToFirst()
 
         for (i in 0.._cursor.count - 1) {
-            val toiletInfoModel = ToiletInfoModel(
+            val toiletInfoModel = ToiletInfoClass(
                     toiletName = _cursor.getString(_cursor.getColumnIndex("toiletname"))
                     , district = _cursor.getString(_cursor.getColumnIndex("district"))
                     , municipality = _cursor.getString(_cursor.getColumnIndex("municipality"))

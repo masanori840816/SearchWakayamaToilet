@@ -21,6 +21,7 @@ import android.view.inputmethod.EditorInfo
 import android.widget.ArrayAdapter
 import android.widget.ListView
 import android.widget.Toast
+import rx.Observer
 import rx.Subscription
 import rx.android.schedulers.AndroidSchedulers
 import rx.subscriptions.CompositeSubscription
@@ -30,6 +31,7 @@ import java.util.ArrayList
 import java.util.Timer
 import java.util.TimerTask
 
+import jp.searchwakayamatoilet.DatabaseAccesser.ToiletInfoClass
 /**
  * Created by masanori on 2016/01/24.
  * this class for controlling MainPage.
@@ -37,7 +39,7 @@ import java.util.TimerTask
 class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: String) {
     private val locationAccesser: LocationAccesser
     private val loadingPanelViewer: LoadingPanelViewer
-    private var dataLoader: ToiletDataLoader? = null
+    private lateinit var dataLoader: ToiletDataLoader
     private var isLoadingCanceled: Boolean = false
 
     private val timeController: TimerController
@@ -45,16 +47,20 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
 
     private var suggestList: ListView? = null
     var strLastQuery: String
+        get() = field
+
+    private lateinit var loadSubscription: Subscription
+    private lateinit var searchSubscription: Subscription
 
     init {
-
+        dataLoader = ToiletDataLoader(currentActivity)
         timeController = TimerController(this)
         locationAccesser = LocationAccesser(
                 currentActivity.getSystemService(Context.LOCATION_SERVICE) as LocationManager, currentActivity as Activity)
         loadingPanelViewer = LoadingPanelViewer(currentActivity)
 
         strLastQuery = lastQuery
-        init()
+        initGui()
     }
 
     @TargetApi(Build.VERSION_CODES.M)
@@ -79,10 +85,23 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
         isLoadingCanceled = false
         locationAccesser.clearMap()
 
-        dataLoader = ToiletDataLoader(currentActivity, isExistingDataUsed, this, newQuery)
-        dataLoader?.execute()
-    }
+        startLoadingCsvData()
+        loadSubscription = dataLoader.loadToiletData(isExistingDataUsed, newQuery)
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(object: Observer<ArrayList<ToiletInfoClass>> {
+                override fun onCompleted() {
+                    RxBusProvider.getInstance().send(LoadingPanelEvent(true))
+                }
 
+                override fun onError(e: Throwable) {
+                    showErrorDialog(e.message)
+                }
+
+                override fun onNext(toiletInfoList: ArrayList<ToiletInfoClass>){
+                    addMarker(toiletInfoList)
+                }
+            })
+    }
     private fun moveCurrentLocation() {
         // GPSをONにした直後は値が取れない場合があるのでTimerで1秒待つ.
         val tmrGettingLocationTimer = Timer()
@@ -94,37 +113,6 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
             currentActivity.runOnUiThread { locationAccesser.moveCurrentLocation(mainPresenter) }
         }
     }
-
-    fun startLoadingCsvData() {
-        currentActivity.runOnUiThread { // show loading dialog.
-            loadingPanelViewer.show()
-        }
-    }
-
-    fun addMarker(toiletInfoModelList: ArrayList<DatabaseAccesser.ToiletInfoModel>) {
-        currentActivity.runOnUiThread {
-            for (toiletInfo in toiletInfoModelList) {
-                if (isLoadingCanceled) {
-                    break
-                }
-                var newSnippet = currentActivity.getString(R.string.marker_address)
-                newSnippet += toiletInfo.address
-                newSnippet += currentActivity.getString(R.string.marker_availabletime)
-                newSnippet += toiletInfo.availableTime
-
-                locationAccesser.addMarker(toiletInfo.toiletName, toiletInfo.latitude, toiletInfo.longitude, newSnippet)
-            }
-        }
-    }
-
-    fun showToast(messageNum: Int) {
-        // Runnable() - run().
-        currentActivity.runOnUiThread {
-            Toast.makeText(currentActivity, messageNum, Toast.LENGTH_SHORT)
-                    .show()
-        }
-    }
-
     fun showErrorDialog(errorMessage: String?) {
         currentActivity.runOnUiThread {
             val alert = AlertDialog.Builder(currentActivity)
@@ -158,7 +146,7 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
         }
     }
 
-    private fun init() {
+    private fun initGui() {
         val toolbar = currentActivity.findViewById(R.id.toolbar) as Toolbar
         toolbar.inflateMenu(R.menu.menu_main)
 
@@ -239,7 +227,11 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
         }
         getMap(strLastQuery)
     }
-
+    private fun startLoadingCsvData() {
+        currentActivity.runOnUiThread { // show loading dialog.
+            loadingPanelViewer.show()
+        }
+    }
     private fun getMap(newQuery: String) {
         strLastQuery = newQuery
         // Android6.0以降なら権限確認.
@@ -253,17 +245,55 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
     private fun setMarkersByFreeWord(newQuery: String) {
         isLoadingCanceled = false
         locationAccesser.clearMap()
-        val dataSearcher = ToiletDataSearcher(currentActivity, this, newQuery)
-        dataSearcher.execute()
+        searchSubscription = dataLoader.searchToiletData(newQuery)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(object: Observer<ArrayList<ToiletInfoClass>> {
+                    override fun onCompleted() {
+                    }
+                    override fun onError(e: Throwable) {
+                        showErrorDialog(e.message)
+                    }
+                    override fun onNext(toiletInfoList: ArrayList<ToiletInfoClass>){
+                        if(toiletInfoList.size <= 0){
+                            // show toast on getting no results.
+                            showToast(R.string.toast_no_results)
+                        }
+                        else{
+                            addMarker(toiletInfoList)
+                        }
+                    }
+                })
+    }
+    private fun showToast(messageNum: Int) {
+        // Runnable() - run().
+        currentActivity.runOnUiThread {
+            Toast.makeText(currentActivity, messageNum, Toast.LENGTH_SHORT)
+                    .show()
+        }
     }
     private fun stopLoadingCsvData() {
         currentActivity.runOnUiThread {
             isLoadingCanceled = true
             // hide loading dialog.
             loadingPanelViewer.hide()
-            dataLoader?.stopLoading()
-            dataLoader?.cancel(true)
+            dataLoader.stopLoading()
+ //           dataLoader?.cancel(true)
         }
 
+    }
+    private fun addMarker(toiletInfoModelList: ArrayList<ToiletInfoClass>) {
+        currentActivity.runOnUiThread {
+            for (toiletInfo in toiletInfoModelList) {
+                if (isLoadingCanceled) {
+                    break
+                }
+                var newSnippet = currentActivity.getString(R.string.marker_address)
+                newSnippet += toiletInfo.address
+                newSnippet += currentActivity.getString(R.string.marker_availabletime)
+                newSnippet += toiletInfo.availableTime
+
+                locationAccesser.addMarker(toiletInfo.toiletName, toiletInfo.latitude, toiletInfo.longitude, newSnippet)
+            }
+        }
     }
 }

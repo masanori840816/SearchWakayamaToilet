@@ -3,7 +3,7 @@ apply plugin: 'kotlin-android'
 
 android {
     compileSdkVersion 24
-    buildToolsVersion "23.0.3"
+    buildToolsVersion "24.0.1"
 
     defaultConfig {
         applicationId "jp.searchwakayamatoilet"
@@ -30,23 +30,22 @@ android {
     }
 }
 buildscript {
-    ext.android_support_version ='24.0.0'
+    ext.android_support_version ='24.1.1'
     ext.support_test_version = "0.5"
     ext.firebase_version = "9.2.0"
+    ext.play_services_version = "9.2.1"
     repositories {
         mavenCentral()
     }
 }
-
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile "com.android.support:appcompat-v7:${android_support_version}"
     compile "com.google.firebase:firebase-core:${firebase_version}"
     compile "com.google.firebase:firebase-crash:${firebase_version}"
-    compile 'com.google.android.gms:play-services-location:9.2.0'
-    compile 'com.google.android.gms:play-services-maps:9.2.0'
+    compile "com.google.android.gms:play-services-location:${play_services_version}"
+    compile "com.google.android.gms:play-services-maps:${play_services_version}"
     compile "com.android.support:design:${android_support_version}"
-    compile 'com.annimon:stream:1.0.5'
     compile "com.android.support:support-v4:${android_support_version}"
     compile 'io.reactivex:rxandroid:1.2.0'
     compile 'io.reactivex:rxjava:1.1.5'
@@ -63,6 +62,7 @@ dependencies {
     androidTestCompile "com.crittercism.dexmaker:dexmaker-dx:1.4"
     androidTestCompile "com.crittercism.dexmaker:dexmaker-mockito:1.4"
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    compile "com.google.code.gson:gson:2.7"
 }
 kapt {
     generateStubs = true

@@ -32,9 +32,6 @@
     <string name="about_credits_title_rxandroid">RxAndroid</string>
     <string name="about_credits_rxandroid">このアプリはRxAndroidを使用しています。このLibraryはApache License ver.2.0でライセンスされています。</string>
     <string name="about_credits_rxandroid_url">https://github.com/ReactiveX/RxAndroid</string>
-    <string name="about_credits_title_lightweightstreamapi">Lightweight-Stream-API</string>
-    <string name="about_credits_lightweightstreamapi">このアプリはLightweight-Stream-APIを使用しています。このLibraryはApache License ver.2.0でライセンスされています。</string>
-    <string name="about_credits_lightweightstreamapi_url">https://github.com/aNNiMON/Lightweight-Stream-API</string>
     <string name="error_title">問題が発生しました</string>
     <string name="error_dialog">アプリの実行中に問題が発生しました。以下の内容を開発者にご連絡ください。:\n</string>
 </resources>
