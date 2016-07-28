@@ -39,9 +39,17 @@ Unless required by applicable law or agreed to in writing, software distributed 
 See the License for the specific language governing permissions and limitations under the License.
 </pre>
 
-### Lightweight-Stream-API
-* Project: https://github.com/aNNiMON/Lightweight-Stream-API
-* License: Apache License Version2.0(https://github.com/aNNiMON/Lightweight-Stream-API/blob/master/LICENSE)
+### Gradle Retrolambda Plugin
+* Project: https://github.com/evant/gradle-retrolambda
+* License: Apache License Version2.0(https://github.com/evant/gradle-retrolambda/blob/master/LICENSE.txt)
+
+### android-retrolambda-lombok
+* Project: https://github.com/evant/android-retrolambda-lombok
+* License: Apache License Version2.0(https://github.com/evant/android-retrolambda-lombok/blob/master/LICENSE)
+
+### RxJava-Optional
+* Project: https://github.com/eccyan/RxJava-Optional
+* License: Apache License Version2.0(https://github.com/eccyan/RxJava-Optional/blob/master/LICENSE.txt)
 
 ### Mockito
 * Project: http://mockito.org/

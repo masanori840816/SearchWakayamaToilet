@@ -39,7 +39,7 @@ import jp.searchwakayamatoilet.DatabaseAccesser.ToiletInfoClass
 class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: String) {
     private val locationAccesser: LocationAccesser
     private val loadingPanelViewer: LoadingPanelViewer
-    private lateinit var dataLoader: ToiletDataLoader
+    private lateinit var toiletInfoAccesser: ToiletInfoAccesser
     private var isLoadingCanceled: Boolean = false
 
     private val timeController: TimerController
@@ -53,7 +53,7 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
     private lateinit var searchSubscription: Subscription
 
     init {
-        dataLoader = ToiletDataLoader(currentActivity)
+        toiletInfoAccesser = ToiletInfoAccesser(currentActivity)
         timeController = TimerController(this)
         locationAccesser = LocationAccesser(
                 currentActivity.getSystemService(Context.LOCATION_SERVICE) as LocationManager, currentActivity as Activity)
@@ -86,9 +86,9 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
         locationAccesser.clearMap()
 
         startLoadingCsvData()
-        loadSubscription = dataLoader.loadToiletData(isExistingDataUsed, newQuery)
+        loadSubscription = toiletInfoAccesser.loadToiletData(currentActivity, isExistingDataUsed, newQuery)
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(object: Observer<ArrayList<ToiletInfoClass>> {
+            .subscribe(object: Observer<List<ToiletInfoClass>> {
                 override fun onCompleted() {
                     RxBusProvider.getInstance().send(LoadingPanelEvent(true))
                 }
@@ -97,7 +97,7 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
                     showErrorDialog(e.message)
                 }
 
-                override fun onNext(toiletInfoList: ArrayList<ToiletInfoClass>){
+                override fun onNext(toiletInfoList: List<ToiletInfoClass>){
                     addMarker(toiletInfoList)
                 }
             })
@@ -245,15 +245,15 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
     private fun setMarkersByFreeWord(newQuery: String) {
         isLoadingCanceled = false
         locationAccesser.clearMap()
-        searchSubscription = dataLoader.searchToiletData(newQuery)
+        searchSubscription = toiletInfoAccesser.searchToiletData(newQuery)
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(object: Observer<ArrayList<ToiletInfoClass>> {
+                .subscribe(object: Observer<List<ToiletInfoClass>> {
                     override fun onCompleted() {
                     }
                     override fun onError(e: Throwable) {
                         showErrorDialog(e.message)
                     }
-                    override fun onNext(toiletInfoList: ArrayList<ToiletInfoClass>){
+                    override fun onNext(toiletInfoList: List<ToiletInfoClass>){
                         if(toiletInfoList.size <= 0){
                             // show toast on getting no results.
                             showToast(R.string.toast_no_results)
@@ -276,12 +276,12 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
             isLoadingCanceled = true
             // hide loading dialog.
             loadingPanelViewer.hide()
-            dataLoader.stopLoading()
+            toiletInfoAccesser.stopLoading()
  //           dataLoader?.cancel(true)
         }
 
     }
-    private fun addMarker(toiletInfoModelList: ArrayList<ToiletInfoClass>) {
+    private fun addMarker(toiletInfoModelList: List<ToiletInfoClass>) {
         currentActivity.runOnUiThread {
             for (toiletInfo in toiletInfoModelList) {
                 if (isLoadingCanceled) {

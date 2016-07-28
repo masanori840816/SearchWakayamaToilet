@@ -15,7 +15,7 @@ import android.util.Log
 import java.util.ArrayList
 
 class DatabaseAccesser(context: Context) : SQLiteOpenHelper(context, "toiletinfo.db", null, 3) {
-    data class ToiletInfoClass(var id: Int = 0, var toiletName: String, var district: String
+    data class ToiletInfoClass(var toiletName: String, var district: String
             , var municipality: String, var address: String, var latitude: Double, var longitude: Double
             , var availableTime: String, var hasMultiPurposeToilet: Boolean)
 
