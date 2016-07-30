@@ -15,8 +15,11 @@ import com.eccyan.optional.Optional;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
+
+import com.google.gson.Gson;
 
 import jp.searchwakayamatoilet.DatabaseAccesser.ToiletInfoClass;
 
@@ -54,6 +57,8 @@ public class ToiletInfoAccesser {
                                     // CSVの読み込み.
                                     InputStreamReader inputStreamReader = new InputStreamReader(asset.open("toilet-map-edited.csv"));
                                     BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+
+                                    InputStream inputStream = asset.open("toiletdata.json");
                                     toiletInfoList.clear();
 
                                     // 1行ずつ読み込む.

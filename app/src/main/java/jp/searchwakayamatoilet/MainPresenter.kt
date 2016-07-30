@@ -87,20 +87,20 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
 
         startLoadingCsvData()
         loadSubscription = toiletInfoAccesser.loadToiletData(currentActivity, isExistingDataUsed, newQuery)
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(object: Observer<List<ToiletInfoClass>> {
-                override fun onCompleted() {
-                    RxBusProvider.getInstance().send(LoadingPanelEvent(true))
-                }
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(object: Observer<List<ToiletInfoClass>> {
+                    override fun onCompleted() {
+                        RxBusProvider.getInstance().send(LoadingPanelEvent(true))
+                    }
 
-                override fun onError(e: Throwable) {
-                    showErrorDialog(e.message)
-                }
+                    override fun onError(e: Throwable) {
+                        showErrorDialog(e.message)
+                    }
 
-                override fun onNext(toiletInfoList: List<ToiletInfoClass>){
-                    addMarker(toiletInfoList)
-                }
-            })
+                    override fun onNext(toiletInfoList: List<ToiletInfoClass>){
+                        addMarker(toiletInfoList)
+                    }
+                })
     }
     private fun moveCurrentLocation() {
         // GPSをONにした直後は値が取れない場合があるのでTimerで1秒待つ.
@@ -277,7 +277,7 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
             // hide loading dialog.
             loadingPanelViewer.hide()
             toiletInfoAccesser.stopLoading()
- //           dataLoader?.cancel(true)
+            //           dataLoader?.cancel(true)
         }
 
     }
