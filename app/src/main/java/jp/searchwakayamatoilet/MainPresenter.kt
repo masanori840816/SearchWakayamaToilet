@@ -31,7 +31,6 @@ import java.util.ArrayList
 import java.util.Timer
 import java.util.TimerTask
 
-import jp.searchwakayamatoilet.DatabaseAccesser.ToiletInfoClass
 /**
  * Created by masanori on 2016/01/24.
  * this class for controlling MainPage.
@@ -88,7 +87,7 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
         startLoadingCsvData()
         loadSubscription = toiletInfoAccesser.loadToiletData(currentActivity, isExistingDataUsed, newQuery)
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(object: Observer<List<ToiletInfoClass>> {
+                .subscribe(object: Observer<List<ToiletInfoClass.ToiletInfo>> {
                     override fun onCompleted() {
                         RxBusProvider.getInstance().send(LoadingPanelEvent(true))
                     }
@@ -97,7 +96,7 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
                         showErrorDialog(e.message)
                     }
 
-                    override fun onNext(toiletInfoList: List<ToiletInfoClass>){
+                    override fun onNext(toiletInfoList: List<ToiletInfoClass.ToiletInfo>){
                         addMarker(toiletInfoList)
                     }
                 })
@@ -247,13 +246,13 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
         locationAccesser.clearMap()
         searchSubscription = toiletInfoAccesser.searchToiletData(newQuery)
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(object: Observer<List<ToiletInfoClass>> {
+                .subscribe(object: Observer<List<ToiletInfoClass.ToiletInfo>> {
                     override fun onCompleted() {
                     }
                     override fun onError(e: Throwable) {
                         showErrorDialog(e.message)
                     }
-                    override fun onNext(toiletInfoList: List<ToiletInfoClass>){
+                    override fun onNext(toiletInfoList: List<ToiletInfoClass.ToiletInfo>){
                         if(toiletInfoList.size <= 0){
                             // show toast on getting no results.
                             showToast(R.string.toast_no_results)
@@ -281,7 +280,7 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
         }
 
     }
-    private fun addMarker(toiletInfoModelList: List<ToiletInfoClass>) {
+    private fun addMarker(toiletInfoModelList: List<ToiletInfoClass.ToiletInfo>) {
         currentActivity.runOnUiThread {
             for (toiletInfo in toiletInfoModelList) {
                 if (isLoadingCanceled) {
