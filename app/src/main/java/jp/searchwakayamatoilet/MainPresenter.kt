@@ -24,6 +24,7 @@ import android.widget.Toast
 import rx.Observer
 import rx.Subscription
 import rx.android.schedulers.AndroidSchedulers
+import rx.schedulers.Schedulers
 import rx.subscriptions.CompositeSubscription
 
 import java.util.ArrayList
@@ -80,12 +81,13 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
         }
     }
 
-    fun loadCsvData(isExistingDataUsed: Boolean, newQuery: String?) {
+    fun loadToiletInfo(isExistingDataUsed: Boolean, newQuery: String?) {
         isLoadingCanceled = false
         locationAccesser.clearMap()
 
-        startLoadingCsvData()
+        startLoadingToiletInfo()
         loadSubscription = toiletInfoAccesser.loadToiletData(currentActivity, isExistingDataUsed, newQuery)
+                .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(object: Observer<List<ToiletInfoClass.ToiletInfo>> {
                     override fun onCompleted() {
@@ -215,7 +217,7 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
         // MenuItem.OnMenuItemClickListener() - onMenuItemClick(MenuItem item).
         toolbar.menu.findItem(R.id.update_button).setOnMenuItemClickListener { item ->
             // reload toilet datas from csv.
-            loadCsvData(false, strLastQuery)
+            loadToiletInfo(false, strLastQuery)
             false
         }
         toolbar.menu.findItem(R.id.show_about_button).setOnMenuItemClickListener { item ->
@@ -226,7 +228,7 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
         }
         getMap(strLastQuery)
     }
-    private fun startLoadingCsvData() {
+    private fun startLoadingToiletInfo() {
         currentActivity.runOnUiThread { // show loading dialog.
             loadingPanelViewer.show()
         }

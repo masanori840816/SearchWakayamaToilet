@@ -13,13 +13,12 @@ import com.google.firebase.analytics.FirebaseAnalytics;
 
 public class MainActivity extends AppCompatActivity{
     private MainPresenter presenter;
-    private FirebaseAnalytics analytics;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        analytics = FirebaseAnalytics.getInstance(this);
+        FirebaseAnalytics analytics = FirebaseAnalytics.getInstance(this);
 
         String lastQuery = "";
 

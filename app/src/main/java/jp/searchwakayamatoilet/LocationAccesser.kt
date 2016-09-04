@@ -58,7 +58,7 @@ class LocationAccesser(private val locationManager: LocationManager, private val
                     locationAccesser.moveToMyLocation(fragmentActivity, presenter)
                     false
                 }
-                presenter.loadCsvData(true, newQuery)
+                presenter.loadToiletInfo(true, newQuery)
             } catch (ex: SecurityException) {
                 presenter.showErrorDialog(ex.message)
             }
