@@ -37,7 +37,7 @@ import java.util.TimerTask
  * this class for controlling MainPage.
  */
 class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: String) {
-    private val locationAccesser: LocationAccesser
+    private val mapManager: MapManager
     private val loadingPanelViewer: LoadingPanelViewer
     private lateinit var toiletInfoAccesser: ToiletInfoAccesser
     private var isLoadingCanceled: Boolean = false
@@ -55,7 +55,7 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
     init {
         toiletInfoAccesser = ToiletInfoAccesser(currentActivity)
         timeController = TimerController(this)
-        locationAccesser = LocationAccesser(
+        mapManager = MapManager(
                 currentActivity.getSystemService(Context.LOCATION_SERVICE) as LocationManager, currentActivity as Activity)
         loadingPanelViewer = LoadingPanelViewer(currentActivity)
 
@@ -67,7 +67,7 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
     private fun requestPermissions() {
         // 権限が許可されていない場合はリクエスト.
         if (currentActivity.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            locationAccesser.getGoogleMap(currentActivity, this, strLastQuery)
+            mapManager.setGoogleMap(currentActivity, this, strLastQuery)
         } else {
             currentActivity.requestPermissions(arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION), R.string.request_permission)
         }
@@ -77,13 +77,13 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
         // 権限リクエストの結果を取得する.
         if (intGrantResults[0] == PackageManager.PERMISSION_GRANTED) {
             // after being allowed permissions, get GoogleMap and start loading CSV.
-            locationAccesser.getGoogleMap(currentActivity, this, strLastQuery)
+            mapManager.setGoogleMap(currentActivity, this, strLastQuery)
         }
     }
 
     fun loadToiletInfo(isExistingDataUsed: Boolean, newQuery: String?) {
         isLoadingCanceled = false
-        locationAccesser.clearMap()
+        mapManager.clearMap()
 
         startLoadingToiletInfo()
         loadSubscription = toiletInfoAccesser.loadToiletData(currentActivity, isExistingDataUsed, newQuery)
@@ -111,7 +111,7 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
 
     inner class TimerController(private val mainPresenter: MainPresenter) : TimerTask() {
         override fun run() {
-            currentActivity.runOnUiThread { locationAccesser.moveCurrentLocation(mainPresenter) }
+            currentActivity.runOnUiThread { mapManager.moveCurrentLocation(mainPresenter) }
         }
     }
     fun showErrorDialog(errorMessage: String?) {
@@ -139,7 +139,7 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
     }
     fun onActivityResult(requestCode: Int, resultCode: Int){
         when (requestCode) {
-            locationAccesser.getRequestGpsEnable() ->
+            mapManager.getRequestGpsEnable() ->
                 if (resultCode == Activity.RESULT_OK) {
                     // get location data.
                     moveCurrentLocation()
@@ -239,13 +239,13 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             requestPermissions()
         } else {
-            locationAccesser.getGoogleMap(currentActivity, this, strLastQuery)
+            mapManager.setGoogleMap(currentActivity, this, strLastQuery)
         }
     }
 
     private fun setMarkersByFreeWord(newQuery: String) {
         isLoadingCanceled = false
-        locationAccesser.clearMap()
+        mapManager.clearMap()
         searchSubscription = toiletInfoAccesser.searchToiletData(newQuery)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(object: Observer<List<ToiletInfoClass.ToiletInfo>> {
@@ -293,7 +293,7 @@ class MainPresenter(private val currentActivity: FragmentActivity, lastQuery: St
                 newSnippet += currentActivity.getString(R.string.marker_availabletime)
                 newSnippet += toiletInfo.availableTime
 
-                locationAccesser.addMarker(toiletInfo.toiletName, toiletInfo.latitude, toiletInfo.longitude, newSnippet)
+                mapManager.addMarker(toiletInfo.toiletName, toiletInfo.latitude, toiletInfo.longitude, newSnippet)
             }
         }
     }
