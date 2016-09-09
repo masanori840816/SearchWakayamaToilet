@@ -1,6 +1,5 @@
 apply plugin: 'com.android.application'
 apply plugin: 'me.tatarka.retrolambda'
-apply plugin: 'kotlin-android'
 
 android {
     compileSdkVersion 24
@@ -36,7 +35,7 @@ android {
 
 }
 buildscript {
-    ext.android_support_version ='24.1.1'
+    ext.android_support_version ='24.2.0'
     ext.support_test_version = "0.5"
     ext.firebase_version = "9.2.0"
     ext.play_services_version = "9.2.1"
@@ -55,7 +54,6 @@ dependencies {
     compile "com.android.support:support-v4:${android_support_version}"
     compile 'io.reactivex:rxandroid:1.2.0'
     compile 'io.reactivex:rxjava:1.1.5'
-    kapt 'com.android.databinding:compiler:1.0-rc5'
 
     // App's dependencies, including test
     androidTestCompile "com.android.support:support-annotations:${android_support_version}"
@@ -67,7 +65,6 @@ dependencies {
     androidTestCompile "com.crittercism.dexmaker:dexmaker:1.4"
     androidTestCompile "com.crittercism.dexmaker:dexmaker-dx:1.4"
     androidTestCompile "com.crittercism.dexmaker:dexmaker-mockito:1.4"
-    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     compile "com.google.code.gson:gson:2.7"
     compile 'com.eccyan:rxjava-optional:1.1.2'
 }
@@ -75,8 +72,4 @@ dependencies {
 // Required because retrolambda is on maven central
 repositories {
     mavenCentral()
-}
-
-kapt {
-    generateStubs = true
 }

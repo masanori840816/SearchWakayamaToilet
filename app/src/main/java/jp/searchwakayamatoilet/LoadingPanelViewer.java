@@ -15,12 +15,12 @@ public class LoadingPanelViewer {
     @NonNull
     private ProgressDialog progressDialog;
 
-    public LoadingPanelViewer(Context context){
+    public LoadingPanelViewer(@NonNull Context context){
         progressDialog = new ProgressDialog(context);
         progressDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         progressDialog.setOnKeyListener((DialogInterface dialog, int keyCode, KeyEvent event) -> {
             if (keyCode == KeyEvent.KEYCODE_BACK) {
-                RxBusProvider.Companion.getInstance().send(new LoadingPanelEvent(true));
+                // TODO: Presenterにキャンセルされたことを伝える
             }
             return false;
         });

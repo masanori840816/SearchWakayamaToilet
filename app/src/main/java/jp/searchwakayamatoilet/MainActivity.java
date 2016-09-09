@@ -59,6 +59,6 @@ public class MainActivity extends AppCompatActivity{
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putString(getString(R.string.saveinstance_key_last_query), presenter.getStrLastQuery());
+        outState.putString(getString(R.string.saveinstance_key_last_query), presenter.getLastQuery());
     }
 }

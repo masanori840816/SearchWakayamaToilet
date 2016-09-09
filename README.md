@@ -12,7 +12,7 @@ https://play.google.com/store/apps/details?id=jp.searchwakayamatoilet
     * search
 
 ## Environment
-* IDE: Android Studio 2.1.2
+* IDE: Android Studio 2.1.3
 * Min SDK: 16
 
 ## Licence
@@ -21,23 +21,6 @@ https://play.google.com/store/apps/details?id=jp.searchwakayamatoilet
 ### toilet-map
 * Project: https://github.com/wakayama-pref-org/toilet-map
 * License: CC BY 2.1 JP(https://github.com/wakayama-pref-org/toilet-map/blob/master/README.md)
-
-### Kotlin Programming Language
-* Project: https://github.com/JetBrains/kotlin
-* License: Apache License Version2.0
-
-<pre>
-Copyright 2010-2016 JetBrains s.r.o.
-
-Licensed under the Apache License, Version 2.0 (the "License");<br>
-you may not use this file except in compliance with the License.<br>
-You may obtain a copy of the License at
-
-http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.<br>
-See the License for the specific language governing permissions and limitations under the License.
-</pre>
 
 ### Gradle Retrolambda Plugin
 * Project: https://github.com/evant/gradle-retrolambda
