@@ -15,15 +15,10 @@ public class LoadingPanelViewer {
     @NonNull
     private ProgressDialog progressDialog;
 
-    public LoadingPanelViewer(@NonNull Context context){
+    public LoadingPanelViewer(@NonNull Context context, @NonNull DialogInterface.OnKeyListener keyListener){
         progressDialog = new ProgressDialog(context);
         progressDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        progressDialog.setOnKeyListener((DialogInterface dialog, int keyCode, KeyEvent event) -> {
-            if (keyCode == KeyEvent.KEYCODE_BACK) {
-                // TODO: Presenterにキャンセルされたことを伝える
-            }
-            return false;
-        });
+        progressDialog.setOnKeyListener(keyListener);
         progressDialog.setCancelable(false);
     }
     public void show(){

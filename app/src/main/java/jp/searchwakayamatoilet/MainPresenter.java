@@ -10,6 +10,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.SearchManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
@@ -17,6 +18,7 @@ import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.MenuItemCompat;
+import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.widget.SearchView;
 
@@ -41,7 +43,7 @@ public class MainPresenter {
     @NonNull
     private final MapManager mapManager;
     @NonNull
-    private final LoadingPanelViewer loadingPanelViewer;
+    private LoadingPanelViewer loadingPanelViewer;
     @NonNull
     private final ToiletInfoAccesser toiletInfoAccesser;
     private boolean isLoadingCanceled = false;
@@ -57,6 +59,22 @@ public class MainPresenter {
     private Subscription loadSubscription;
     private Subscription searchSubscription;
 
+    private DialogInterface.OnKeyListener progressDialogKeyListener = (
+            (DialogInterface dialog, int keyCode, KeyEvent event)-> {
+                if (keyCode == KeyEvent.KEYCODE_BACK) {
+                    // TODO: Presenterにキャンセルされたことを伝える
+                    if(loadSubscription != null){
+                        loadSubscription.unsubscribe();
+                    }
+                    if(loadingPanelViewer != null){
+                        loadingPanelViewer.hide();
+                    }
+
+                    isLoadingCanceled = true;
+                }
+                return false;
+            });
+
     public class TimerController extends TimerTask {
         private MainPresenter mainPresenter;
         public TimerController(MainPresenter setMainPresenter){
@@ -67,7 +85,7 @@ public class MainPresenter {
             currentActivity.runOnUiThread(()-> mapManager.moveCurrentLocation(mainPresenter));
         }
     }
-    public String getLastQuery(){
+    public @NonNull String getLastQuery(){
         return lastQuery;
     }
     public MainPresenter(@NonNull FragmentActivity setActivity, @NonNull String setLastQuery){
@@ -76,7 +94,7 @@ public class MainPresenter {
         timeController = new TimerController(this);
         mapManager = new MapManager(
                 (LocationManager)setActivity.getSystemService(Context.LOCATION_SERVICE), currentActivity);
-        loadingPanelViewer = new LoadingPanelViewer(currentActivity);
+        loadingPanelViewer = new LoadingPanelViewer(currentActivity, progressDialogKeyListener);
 
         lastQuery = setLastQuery;
         initGui();
@@ -92,25 +110,27 @@ public class MainPresenter {
         isLoadingCanceled = false;
         mapManager.clearMap();
 
-        startLoadingToiletInfo();
+        // show loading dialog.
+        loadingPanelViewer.show();
+
         loadSubscription = toiletInfoAccesser.loadToiletData(currentActivity, isExistingDataUsed, newQuery)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Observer<ArrayList<ToiletInfoClass.ToiletInfo>>() {
-            @Override
-            public void onCompleted() {
-                // LoadingPanelを非表示にする.
-                loadingPanelViewer.hide();
-            }
-            @Override
-            public void onError(Throwable e) {
-                showErrorDialog(e.getMessage());
-            }
-            @Override
-            public void onNext(ArrayList<ToiletInfoClass.ToiletInfo> toiletInfoList){
-                addMarker(toiletInfoList);
-            }
-        });
+                    @Override
+                    public void onCompleted() {
+                        // LoadingPanelを非表示にする.
+                        loadingPanelViewer.hide();
+                    }
+                    @Override
+                    public void onError(Throwable e) {
+                        showErrorDialog(e.getMessage());
+                    }
+                    @Override
+                    public void onNext(ArrayList<ToiletInfoClass.ToiletInfo> toiletInfoList){
+                        addMarker(toiletInfoList);
+                    }
+                });
     }
     public void showErrorDialog(String errorMessage) {
         currentActivity.runOnUiThread (() ->{
@@ -121,14 +141,6 @@ public class MainPresenter {
             alert.show();
         });
     }
-    public void onResume(){
-        currentActivity.runOnUiThread (() -> {
-            isLoadingCanceled = true;
-            // hide loading dialog.
-            loadingPanelViewer.hide();
-            toiletInfoAccesser.stopLoading();
-        });
-    }
     public void onPaused() {
         if(loadSubscription != null){
             loadSubscription.unsubscribe();
@@ -136,15 +148,19 @@ public class MainPresenter {
         if(searchSubscription != null){
             searchSubscription.unsubscribe();
         }
+        // hide loading dialog.
+        loadingPanelViewer.hide();
+        isLoadingCanceled = true;
     }
-    public void onActivityResult(int requestCode, int resultCode){
-        if(requestCode == mapManager.getRequestGpsEnable()){
+    public void onActivityResult(int requestCode, int resultCode) {
+        if (requestCode == mapManager.getRequestGpsEnable()) {
             if (resultCode == Activity.RESULT_OK) {
                 // get location data.
                 moveCurrentLocation();
             }
         }
     }
+
     @TargetApi(Build.VERSION_CODES.M)
     private void requestPermissions() {
         // 権限が許可されていない場合はリクエスト.
@@ -244,10 +260,6 @@ public class MainPresenter {
                 return true;
             });
         getMap(lastQuery);
-    }
-    private void startLoadingToiletInfo() {
-        // show loading dialog.
-        currentActivity.runOnUiThread(() -> loadingPanelViewer.show());
     }
     private void getMap(String newQuery) {
         lastQuery = newQuery;

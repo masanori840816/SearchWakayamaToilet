@@ -59,13 +59,6 @@ public class AboutAppActivity extends AppCompatActivity{
 
         aboutDataList.add(getItem(""
                 , false
-                , getString(R.string.about_credits_title_kotlin)
-                , true
-                , getString(R.string.about_credits_kotlin)
-                , getString(R.string.about_credits_kotlin_url)));
-
-        aboutDataList.add(getItem(""
-                , false
                 , getString(R.string.about_credits_title_rxjava)
                 , true
                 , getString(R.string.about_credits_rxjava)

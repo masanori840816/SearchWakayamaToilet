@@ -23,9 +23,6 @@
     <string name="about_credits_title_toiletmap">toilet-map</string>
     <string name="about_credits_toiletmap">このアプリは和歌山県の公開するtoilet-mapのデータを使用しています。このデータはCreative Commons License 表示 2.1のもとでライセンスされています。</string>
     <string name="about_credits_toiletmap_url">https://github.com/wakayama-pref-org/toilet-map</string>
-    <string name="about_credits_title_kotlin">Kotlin Programming Language</string>
-    <string name="about_credits_kotlin">このアプリはKotlinを使用しています。この言語はApache License ver.2.0でライセンスされています。</string>
-    <string name="about_credits_kotlin_url">https://github.com/JetBrains/kotlin</string>
     <string name="about_credits_title_rxjava">RxJava</string>
     <string name="about_credits_rxjava">このアプリはRxJavaを使用しています。このLibraryはApache License ver.2.0でライセンスされています。</string>
     <string name="about_credits_rxjava_url">https://github.com/ReactiveX/RxJava</string>

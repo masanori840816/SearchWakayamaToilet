@@ -8,6 +8,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.KeyEvent;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
 
@@ -50,11 +52,6 @@ public class MainActivity extends AppCompatActivity{
         // if toilet datas are loading from csv, stop loading.
         presenter.onPaused();
         super.onPause();
-    }
-    @Override
-    public void onResume(){
-        presenter.onResume();
-        super.onResume();
     }
     @Override
     public void onSaveInstanceState(Bundle outState) {

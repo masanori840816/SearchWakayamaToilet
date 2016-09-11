@@ -26,8 +26,6 @@ public class ToiletInfoAccesser {
     private ToiletInfoModel toiletInfoModel;
     @NonNull
     private SQLiteDatabase sqlite;
-    private boolean isTransactionStarted;
-    private boolean isLoadingCancelled;
 
     public ToiletInfoAccesser(Activity currentActivity){
         toiletInfoModel = new ToiletInfoModel(currentActivity);
@@ -39,7 +37,6 @@ public class ToiletInfoAccesser {
                 subscriber -> {
                     toiletInfoModel.setSearchCriteriaFromFreeWord(query);
                     ToiletInfoClass toiletInfoClass = toiletInfoModel.search(sqlite);
-                    isTransactionStarted = false;
 
                     if (isExistingDataUsed
                         && toiletInfoClass.getInfoCount() > 0){
@@ -90,15 +87,5 @@ public class ToiletInfoAccesser {
                     subscriber.onNext(toiletInfoModel.search(toiletInfoModel.getWritableDatabase()).getToiletInfoList());
                     subscriber.onCompleted();
                 });
-    }
-    public void stopLoading() {
-        // TODO: 非同期処理の方法を調べて修正.
-        isLoadingCancelled = true;
-    }
-    public void onCancelled() {
-        if (isTransactionStarted) {
-            sqlite.setTransactionSuccessful();
-            sqlite.endTransaction();
-        }
     }
 }
