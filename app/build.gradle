@@ -38,7 +38,7 @@ buildscript {
     ext.android_support_version ='24.2.0'
     ext.support_test_version = "0.5"
     ext.firebase_version = "9.2.0"
-    ext.play_services_version = "9.2.1"
+    ext.play_services_version = "9.4.0"
     repositories {
         mavenCentral()
     }
@@ -66,7 +66,6 @@ dependencies {
     androidTestCompile "com.crittercism.dexmaker:dexmaker-dx:1.4"
     androidTestCompile "com.crittercism.dexmaker:dexmaker-mockito:1.4"
     compile "com.google.code.gson:gson:2.7"
-    compile 'com.eccyan:rxjava-optional:1.1.2'
 }
 
 // Required because retrolambda is on maven central

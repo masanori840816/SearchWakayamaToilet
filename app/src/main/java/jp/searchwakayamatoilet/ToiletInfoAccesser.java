@@ -7,11 +7,9 @@ package jp.searchwakayamatoilet;
 import android.app.Activity;
 import android.content.res.AssetManager;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteException;
 import android.support.annotation.NonNull;
 
 import rx.Observable;
-import com.eccyan.optional.Optional;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,44 +34,40 @@ public class ToiletInfoAccesser {
         return Observable.create(
                 subscriber -> {
                     toiletInfoModel.setSearchCriteriaFromFreeWord(query);
-                    ToiletInfoClass toiletInfoClass = toiletInfoModel.search(sqlite);
 
-                    if (isExistingDataUsed
-                        && toiletInfoClass.getInfoCount() > 0){
-                        // 既存データがDBに存在すればそのままマーカーをセット.
+                    if (isExistingDataUsed){
+                        // 既存データを使う場合はDBを検索してマーカーをセット.
+                        ToiletInfoClass toiletInfoClass = toiletInfoModel.search(sqlite);
                         subscriber.onNext(toiletInfoClass.getToiletInfoList());
                         subscriber.onCompleted();
                     }
                     else{
-                        Optional<AssetManager> assetManager = Optional.of(currentActivity.getResources().getAssets());
-                        assetManager.ifPresent(asset -> {
+                        AssetManager assetManager = currentActivity.getResources().getAssets();
+                        if(assetManager == null){
+                            subscriber.onCompleted();
+                        }
+                        else{
                             try {
-                                try {
-                                    // CSVの読み込み.
-                                    InputStream inputStream = asset.open("toiletdata.json");
-                                    JsonReader jsonReader = new JsonReader(new InputStreamReader(inputStream));
+                                // Jsonの読み込み.
+                                InputStream inputStream = assetManager.open("toiletdata.json");
+                                JsonReader jsonReader = new JsonReader(new InputStreamReader(inputStream));
 
-                                    ToiletInfoClass jsonToiletInfoClass = new Gson().fromJson(jsonReader, ToiletInfoClass.class);
+                                ToiletInfoClass jsonToiletInfoClass = new Gson().fromJson(jsonReader, ToiletInfoClass.class);
 
-                                    // 取得したデータをDBに挿入.
-                                    toiletInfoModel.insertInfo(sqlite, jsonToiletInfoClass);
+                                // 取得したデータをDBに挿入.
+                                toiletInfoModel.insertInfo(sqlite, jsonToiletInfoClass);
 
-                                    jsonReader.close();
-                                    inputStream.close();
+                                jsonReader.close();
+                                inputStream.close();
 
-
-                                    // Add marker on UI Thread.
-
-                                    // TODO: 挿入完了後にDBを再検索したデータに置き換え.
-                                    subscriber.onNext(jsonToiletInfoClass.getToiletInfoList());
-                                    subscriber.onCompleted();
-                                } catch (IOException ex) {
-                                    subscriber.onError(ex);
-                                }
-                            }catch (SQLiteException ex) {
+                                // DBへのデータ挿入後、データを検索してマーカー設置.
+                                ToiletInfoClass toiletInfoClass = toiletInfoModel.search(sqlite);
+                                subscriber.onNext(toiletInfoClass.getToiletInfoList());
+                                subscriber.onCompleted();
+                            } catch (IOException ex) {
                                 subscriber.onError(ex);
                             }
-                        });
+                        }
                     }
                 });
     }

@@ -18,7 +18,7 @@ public class ToiletInfoModel extends SQLiteOpenHelper {
     private String[] searchParameters;
 
     public ToiletInfoModel(Context context){
-        super(context, "toiletinfo.db", null, 3);
+        super(context, "toiletinfo.db", null, 4);
     }
     @Override
     public void onCreate(SQLiteDatabase db) {
@@ -31,16 +31,7 @@ public class ToiletInfoModel extends SQLiteOpenHelper {
                 + "latitude REAL NOT NULL, "
                 + "longitude REAL NOT NULL, "
                 + "availabletime TEXT, "
-                + "hasMultiPurposeToilet NUMERIC, "
-                + "lastupdatedate INTEGER)");
-        db.execSQL("CREATE TABLE IF NOT EXISTS toiletaltname("
-                + "toiletid INTEGER NOT NULL, "
-                + "language TEXT NOT NULL, "
-                + "alttoiletname TEXT NOT NULL, "
-                + "altdistrict TEXT, "
-                + "altmunicipality TEXT, "
-                + "altaddress"
-                + "lastupdatedate INTEGER)");
+                + "hasMultiPurposeToilet NUMERIC)");
     }
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersionNum, int newVersionNum) {
@@ -159,7 +150,6 @@ public class ToiletInfoModel extends SQLiteOpenHelper {
         contentValues.put("longitude", toiletInfo.longitude);
         contentValues.put("availabletime", toiletInfo.availableTime);
         contentValues.put("hasMultiPurposeToilet", toiletInfo.hasMultiPurposeToilet);
-        contentValues.put("lastupdatedate", java.lang.System.currentTimeMillis());
         db.insert("toiletinfo", null, contentValues);
 
         // CommitしてTransactionを終了.
@@ -183,7 +173,6 @@ public class ToiletInfoModel extends SQLiteOpenHelper {
         contentValues.put("longitude", toiletInfo.longitude);
         contentValues.put("availabletime", toiletInfo.availableTime);
         contentValues.put("hasMultiPurposeToilet", toiletInfo.hasMultiPurposeToilet);
-        contentValues.put("lastupdatedate", java.lang.System.currentTimeMillis());
 
         db.update("toiletinfo", contentValues, "id = ?", new String[]{String.valueOf(targetId)});
         // CommitしてTransactionを終了.

@@ -10,7 +10,6 @@ import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.support.annotation.NonNull;
-import android.view.KeyEvent;
 public class LoadingPanelViewer {
     @NonNull
     private ProgressDialog progressDialog;

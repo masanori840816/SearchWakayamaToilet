@@ -106,15 +106,6 @@ public class MainActivityViewTest {
         Espresso.onData(getAboutAppListLink(context.getString(R.string.about_credits_toiletmap_url))).check(matches(isDisplayed()));
     }
     @Test
-    public void hasCreaditsKotlinOnAboutAppActivity() throws Exception{
-        hasAboutAppButtonInMenu();
-
-        Context context = InstrumentationRegistry.getTargetContext();
-        Espresso.onData(getAboutAppListItemTitle(context.getString(R.string.about_credits_title_kotlin))).check(matches(isDisplayed()));
-        Espresso.onData(getAboutAppListDescription(context.getString(R.string.about_credits_kotlin))).check(matches(isDisplayed()));
-        Espresso.onData(getAboutAppListLink(context.getString(R.string.about_credits_kotlin_url))).check(matches(isDisplayed()));
-    }
-    @Test
     public void hasCreaditsRxJavaOnAboutAppActivity() throws Exception{
         hasAboutAppButtonInMenu();
 

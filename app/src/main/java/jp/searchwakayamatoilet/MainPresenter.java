@@ -59,22 +59,6 @@ public class MainPresenter {
     private Subscription loadSubscription;
     private Subscription searchSubscription;
 
-    private DialogInterface.OnKeyListener progressDialogKeyListener = (
-            (DialogInterface dialog, int keyCode, KeyEvent event)-> {
-                if (keyCode == KeyEvent.KEYCODE_BACK) {
-                    // TODO: Presenterにキャンセルされたことを伝える
-                    if(loadSubscription != null){
-                        loadSubscription.unsubscribe();
-                    }
-                    if(loadingPanelViewer != null){
-                        loadingPanelViewer.hide();
-                    }
-
-                    isLoadingCanceled = true;
-                }
-                return false;
-            });
-
     public class TimerController extends TimerTask {
         private MainPresenter mainPresenter;
         public TimerController(MainPresenter setMainPresenter){
@@ -94,6 +78,20 @@ public class MainPresenter {
         timeController = new TimerController(this);
         mapManager = new MapManager(
                 (LocationManager)setActivity.getSystemService(Context.LOCATION_SERVICE), currentActivity);
+
+        final DialogInterface.OnKeyListener progressDialogKeyListener = (
+                (DialogInterface dialog, int keyCode, KeyEvent event)-> {
+                    if (keyCode == KeyEvent.KEYCODE_BACK) {
+                        // データの読み込み、マーカーの追加を止める.
+                        if(loadSubscription != null){
+                            loadSubscription.unsubscribe();
+                        }
+                        loadingPanelViewer.hide();
+
+                        isLoadingCanceled = true;
+                    }
+                    return false;
+                });
         loadingPanelViewer = new LoadingPanelViewer(currentActivity, progressDialogKeyListener);
 
         lastQuery = setLastQuery;
@@ -223,7 +221,7 @@ public class MainPresenter {
             }
         });
 
-        ListView suggestList = (ListView)currentActivity.findViewById(R.id.suggest_list);
+        suggestList = (ListView)currentActivity.findViewById(R.id.suggest_list);
 
         if(suggestList != null) {
             // set suggest items(2016.01.13: only for searching all items).

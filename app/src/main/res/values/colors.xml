@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="color_white">#ffffff</color>
-    <color name="color_skyblue">#9FD9F6</color>
-    <color name="color_searchview">#AFEAF6</color>
+    <color name="color_black">#000000</color>
+    <color name="color_gray">#808992</color>
+    <color name="color_skyblue">#ccedf4</color>
 </resources>
