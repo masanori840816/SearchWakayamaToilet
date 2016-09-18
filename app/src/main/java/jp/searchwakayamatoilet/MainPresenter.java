@@ -26,7 +26,6 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 import rx.Observer;
@@ -227,17 +226,14 @@ public class MainPresenter {
 
         if(suggestList != null) {
             // set suggest items(2016.01.13: only for searching all items).
-            ArrayList<String> suggestItemSearchAll = new ArrayList<>();
-            suggestItemSearchAll.add(currentActivity.getString(R.string.suggest_search_all));
-
-            // Adapter - ArrayAdapter
-            ArrayAdapter<String> suggestListAdapter = new ArrayAdapter<>(
-                    currentActivity,
-                    R.layout.layout_suggest_item,
-                    suggestItemSearchAll);
+            suggestItemList = new ArrayList<>();
+            // 一旦空データを格納.
+            for(int i = 4; i >= 0; i--){
+                suggestItemList.add(new SuggestListItem("", ""));
+            }
 
             // set on listview.
-            suggestList.setAdapter(suggestListAdapter);
+            suggestList.setAdapter(new SuggestDataAdapter(currentActivity, suggestItemList));
             // AdapterView.OnItemClickListener() - onItemClick(AdapterView<?> parent, View view, int position, long id).
             suggestList.setOnItemClickListener((parent, view, position, id) ->{
                     suggestList.setVisibility(View.INVISIBLE);
