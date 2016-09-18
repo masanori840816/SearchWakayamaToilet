@@ -55,6 +55,8 @@ public class MainPresenter {
     private ListView suggestList;
     @NonNull
     private String lastQuery = "";
+    @NonNull
+    private ArrayList<SuggestListItem> suggestItemList;
 
     private Subscription loadSubscription;
     private Subscription searchSubscription;
@@ -104,14 +106,14 @@ public class MainPresenter {
             mapManager.setGoogleMap(currentActivity, this, lastQuery);
         }
     }
-    public void loadToiletInfo(boolean isExistingDataUsed, String newQuery) {
+    public void loadToiletInfo(String newQuery) {
         isLoadingCanceled = false;
         mapManager.clearMap();
 
         // show loading dialog.
         loadingPanelViewer.show();
 
-        loadSubscription = toiletInfoAccesser.loadToiletData(currentActivity, isExistingDataUsed, newQuery)
+        loadSubscription = toiletInfoAccesser.loadToiletData(currentActivity, newQuery)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Observer<ArrayList<ToiletInfoClass.ToiletInfo>>() {
@@ -248,7 +250,7 @@ public class MainPresenter {
         // MenuItem.OnMenuItemClickListener() - onMenuItemClick(MenuItem item).
         toolbar.getMenu().findItem(R.id.update_button).setOnMenuItemClickListener(item ->{
                 // reload toilet datas from csv.
-                loadToiletInfo(false, lastQuery);
+                loadToiletInfo(lastQuery);
                 return false;
             });
         toolbar.getMenu().findItem(R.id.show_about_button).setOnMenuItemClickListener ( item -> {

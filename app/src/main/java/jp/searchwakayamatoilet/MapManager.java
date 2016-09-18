@@ -46,7 +46,7 @@ public class MapManager implements GoogleApiClient.ConnectionCallbacks, GoogleAp
         CurrentMapManager = this;
     }
     @Override
-    public void onConnectionFailed(ConnectionResult result) {
+    public void onConnectionFailed(@NonNull ConnectionResult result) {
     }
     @Override
     public void onConnectionSuspended(int cause) {
@@ -75,7 +75,7 @@ public class MapManager implements GoogleApiClient.ConnectionCallbacks, GoogleAp
                     CurrentMapManager.moveToMyLocation(fragmentActivity, presenter);
                     return false;
                 });
-                presenter.loadToiletInfo(true, newQuery);
+                presenter.loadToiletInfo(newQuery);
             } catch (SecurityException e){
                 presenter.showErrorDialog(e.getMessage());
             }
@@ -133,9 +133,7 @@ public class MapManager implements GoogleApiClient.ConnectionCallbacks, GoogleAp
                     .addOnConnectionFailedListener(this)
                     .build();
         }
-        if(apiClient == null){
-            return;
-        }
+
         PendingResult<LocationSettingsResult> result = LocationServices.SettingsApi.checkLocationSettings(apiClient, builder.build());
         result.setResultCallback (settingsResult -> {
             Status status = settingsResult.getStatus();

@@ -30,10 +30,6 @@ https://play.google.com/store/apps/details?id=jp.searchwakayamatoilet
 * Project: https://github.com/evant/android-retrolambda-lombok
 * License: Apache License Version2.0(https://github.com/evant/android-retrolambda-lombok/blob/master/LICENSE)
 
-### RxJava-Optional
-* Project: https://github.com/eccyan/RxJava-Optional
-* License: Apache License Version2.0(https://github.com/eccyan/RxJava-Optional/blob/master/LICENSE.txt)
-
 ### Mockito
 * Project: http://mockito.org/
 * License:

@@ -1,8 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:padding="16dp"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="@android:color/white"
-    android:gravity="center">
-</TextView>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+    <data>
+        <variable
+            name="suggestitemclass"
+            type="jp.searchwakayamatoilet.SuggestListItem"/>
+    </data>
+    <TextView
+        android:padding="16dp"
+        android:id="@+id/suggest_item_toiletname"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/white"
+        android:gravity="center"
+        android:text="@{suggestitemclass.toiletName}"/>
+    <TextView
+        android:id="@+id/suggest_item_address"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/white"
+        android:text="@{suggestitemclass.address}" />
+</layout>

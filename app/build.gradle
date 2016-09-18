@@ -26,9 +26,6 @@ android {
     packagingOptions {
         exclude 'LICENSE.txt'
     }
-    sourceSets {
-        main.java.srcDirs += 'src/main/kotlin'
-    }
     dataBinding {
         enabled = true
     }
@@ -37,7 +34,6 @@ android {
 buildscript {
     ext.android_support_version ='24.2.0'
     ext.support_test_version = "0.5"
-    ext.firebase_version = "9.2.0"
     ext.play_services_version = "9.4.0"
     repositories {
         mavenCentral()
@@ -46,8 +42,8 @@ buildscript {
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile "com.android.support:appcompat-v7:${android_support_version}"
-    compile "com.google.firebase:firebase-core:${firebase_version}"
-    compile "com.google.firebase:firebase-crash:${firebase_version}"
+    compile "com.google.firebase:firebase-core:${play_services_version}"
+    compile "com.google.firebase:firebase-crash:${play_services_version}"
     compile "com.google.android.gms:play-services-location:${play_services_version}"
     compile "com.google.android.gms:play-services-maps:${play_services_version}"
     compile "com.android.support:design:${android_support_version}"
