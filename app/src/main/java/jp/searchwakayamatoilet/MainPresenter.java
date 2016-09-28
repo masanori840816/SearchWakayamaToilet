@@ -212,11 +212,13 @@ public class MainPresenter {
             public boolean onQueryTextChange(String newText){
                 // if the textarea empty, show suggest items.
                 if (newText.isEmpty()) {
+                    suggestList.setVisibility(View.INVISIBLE);
+                } else {
+                    toiletInfoAccesser.SetSuggestList(newText, suggestItemList);
                     if (searchView.isShown()) {
+                        suggestList.setAdapter(new SuggestDataAdapter(currentActivity, suggestItemList));
                         suggestList.setVisibility(View.VISIBLE);
                     }
-                } else {
-                    suggestList.setVisibility(View.INVISIBLE);
                 }
                 return false;
             }
@@ -237,9 +239,9 @@ public class MainPresenter {
             // AdapterView.OnItemClickListener() - onItemClick(AdapterView<?> parent, View view, int position, long id).
             suggestList.setOnItemClickListener((parent, view, position, id) ->{
                     suggestList.setVisibility(View.INVISIBLE);
-                    setMarkersByFreeWord("");
-                    lastQuery = "";
-                });
+                    lastQuery = suggestItemList.get(position).getToiletName();
+                    setMarkersByFreeWord(lastQuery);
+            });
             suggestList.setVisibility(View.INVISIBLE);
         }
 

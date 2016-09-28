@@ -134,6 +134,7 @@ public class ToiletInfoModel extends SQLiteOpenHelper {
 
         return toiletInfoClass;
     }
+
     private void insert(SQLiteDatabase db, ToiletInfoClass.ToiletInfo toiletInfo, int newId){
         // Transactionの開始.
         db.beginTransaction();

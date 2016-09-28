@@ -32,9 +32,9 @@ android {
 
 }
 buildscript {
-    ext.android_support_version ='24.2.0'
+    ext.android_support_version ='24.2.1'
     ext.support_test_version = "0.5"
-    ext.play_services_version = "9.4.0"
+    ext.play_services_version = "9.6.0"
     repositories {
         mavenCentral()
     }

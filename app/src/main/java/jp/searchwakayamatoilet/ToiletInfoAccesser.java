@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.List;
 
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
@@ -24,10 +25,13 @@ public class ToiletInfoAccesser {
     private ToiletInfoModel toiletInfoModel;
     @NonNull
     private SQLiteDatabase sqlite;
+    @NonNull
+    private ToiletInfoClass toiletInfoClass;
 
     public ToiletInfoAccesser(Activity currentActivity){
         toiletInfoModel = new ToiletInfoModel(currentActivity);
         sqlite = toiletInfoModel.getWritableDatabase();
+        toiletInfoClass = new ToiletInfoClass();
     }
     public Observable<ArrayList<ToiletInfoClass.ToiletInfo>> loadToiletData(Activity currentActivity, String query) {
         // Subscriber<? ToiletInfoModel> subscriber.
@@ -54,7 +58,7 @@ public class ToiletInfoAccesser {
                             inputStream.close();
 
                             // DBへのデータ挿入後、データを検索してマーカー設置.
-                            ToiletInfoClass toiletInfoClass = toiletInfoModel.search(sqlite);
+                            toiletInfoClass = toiletInfoModel.search(sqlite);
                             subscriber.onNext(toiletInfoClass.getToiletInfoList());
                             subscriber.onCompleted();
                         } catch (IOException ex) {
@@ -73,5 +77,23 @@ public class ToiletInfoAccesser {
                     subscriber.onNext(toiletInfoModel.search(toiletInfoModel.getWritableDatabase()).getToiletInfoList());
                     subscriber.onCompleted();
                 });
+    }
+    public void SetSuggestList(@NonNull String query, @NonNull ArrayList<SuggestListItem> targetList){
+
+
+        if(toiletInfoClass.getToiletInfoList() == null){
+            toiletInfoClass = toiletInfoModel.search(sqlite);
+        }
+        List<ToiletInfoClass.ToiletInfo> resultInfo = Observable.from(toiletInfoClass.getToiletInfoList())
+                .filter(info -> info.toiletName.startsWith(query))
+                .limit(targetList.size())
+                .toList()
+                .toBlocking()
+                .single();
+
+        for(int i = 0; i < resultInfo.size(); i++){
+            SuggestListItem setItem = new SuggestListItem(resultInfo.get(i).toiletName, resultInfo.get(i).address);
+            targetList.set(i, setItem);
+        }
     }
 }
